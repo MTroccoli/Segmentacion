@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Segmentación SDM · Comité de Dirección</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --navy:    #07101f;
+  --navy2:   #0f1c30;
+  --navy3:   #162338;
+  --gold:    #c9a84c;
+  --gold2:   #e8c96d;
+  --gold-bg: rgba(201,168,76,0.12);
+  --red:     #d94f3d;
+  --red-bg:  rgba(217,79,61,0.11);
+  --green:   #2ec27e;
+  --grn-bg:  rgba(46,194,126,0.11);
+  --blue:    #4a90d9;
+  --blu-bg:  rgba(74,144,217,0.11);
+  --t1: #edf0f7;
+  --t2: #94a3b8;
+  --t3: #3e4e63;
+  --border: rgba(255,255,255,0.08);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--navy);
+  color:var(--t1);
+  font-family:'DM Sans',sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:54px;background:rgba(7,16,31,0.96);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 36px;
+}
+.nav-brand{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--gold);}
+.nav-slides{display:flex;gap:2px;}
+.nav-btn{
+  background:none;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  color:var(--t3);padding:6px 16px;border-radius:20px;
+  transition:all .2s;
+}
+.nav-btn:hover{color:var(--t2);background:var(--border);}
+.nav-btn.on{color:var(--gold);background:var(--gold-bg);}
+
+#prog-bar{position:fixed;top:54px;left:0;right:0;height:2px;background:var(--border);z-index:199;}
+#prog-fill{height:100%;background:var(--gold);width:0;transition:width .3s;}
+
+/* SLIDES */
+.slide{
+  min-height:100vh;padding:88px 64px 72px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.inner{width:100%;max-width:1060px;position:relative;z-index:2;}
+
+/* CHIPS */
+.chip{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;
+  text-transform:uppercase;padding:6px 16px;border-radius:3px;margin-bottom:28px;
+}
+.chip.gold{color:var(--gold);background:var(--gold-bg);border:1px solid rgba(201,168,76,.25);}
+.chip.red {color:var(--red); background:var(--red-bg); border:1px solid rgba(217,79,61,.25);}
+.chip.grn {color:var(--green);background:var(--grn-bg);border:1px solid rgba(46,194,126,.25);}
+
+/* HEADINGS */
+h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(44px,6vw,80px);font-weight:900;
+  line-height:1.05;letter-spacing:-1.5px;margin-bottom:24px;
+}
+h1 em{color:var(--gold);font-style:italic;}
+h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(30px,4vw,52px);font-weight:700;
+  line-height:1.1;letter-spacing:-.5px;margin-bottom:16px;
+}
+h2 em{color:var(--gold);font-style:italic;}
+.lead{font-size:18px;color:var(--t2);font-weight:300;line-height:1.8;max-width:640px;}
+
+/* META ROW (portada) */
+.meta-row{display:flex;gap:40px;flex-wrap:wrap;margin-top:48px;}
+.meta-item{display:flex;flex-direction:column;gap:4px;}
+.meta-lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--t3);text-transform:uppercase;}
+.meta-val{font-size:15px;font-weight:500;}
+
+/* BUBBLES */
+.bubble-grid{display:flex;flex-wrap:wrap;gap:16px;margin-top:40px;}
+.bubble{
+  position:relative;
+  background:var(--navy2);border:1px solid var(--border);
+  border-radius:16px;padding:26px 28px;
+  cursor:pointer;transition:all .25s;
+  flex:1;min-width:190px;max-width:260px;user-select:none;
+}
+.bubble:hover{border-color:rgba(201,168,76,.4);transform:translateY(-3px);}
+.bubble.active{border-color:var(--gold);background:var(--navy3);}
+.bubble .b-icon{font-size:26px;margin-bottom:14px;display:block;}
+.bubble .b-title{font-size:16px;font-weight:500;margin-bottom:5px;line-height:1.3;}
+.bubble .b-hint{font-size:13px;color:var(--t3);line-height:1.4;}
+.bubble .b-dot{
+  position:absolute;top:16px;right:16px;
+  width:7px;height:7px;border-radius:50%;background:var(--t3);
+  transition:background .2s;
+}
+.bubble.active .b-dot{background:var(--gold);}
+
+/* DETAIL PANEL */
+.detail-panel{
+  margin-top:20px;
+  background:var(--navy2);border:1px solid rgba(201,168,76,.2);
+  border-radius:14px;padding:36px 40px;
+  display:none;animation:fadeSlide .3s ease;
+}
+.detail-panel.open{display:block;}
+@keyframes fadeSlide{
+  from{opacity:0;transform:translateY(10px);}
+  to  {opacity:1;transform:translateY(0);}
+}
+.dp-title{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--gold);margin-bottom:24px;
+}
+.dp-cols{display:grid;gap:24px;}
+.dp-cols.c2{grid-template-columns:1fr 1fr;}
+.dp-cols.c3{grid-template-columns:1fr 1fr 1fr;}
+.dp-block h4{font-size:15px;font-weight:500;margin-bottom:8px;color:var(--t1);}
+.dp-block p{font-size:14px;color:var(--t2);line-height:1.7;}
+
+/* VS ROW */
+.vs-row{
+  display:grid;grid-template-columns:1fr 40px 1fr;gap:20px;
+  align-items:start;margin-top:40px;
+}
+.vs-label{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:14px;
+}
+.vs-label.r{color:var(--red);}
+.vs-label.g{color:var(--green);}
+.vs-item{
+  padding:12px 16px;border-radius:7px;font-size:14px;
+  line-height:1.6;margin-bottom:10px;
+}
+.vs-item.bad {background:var(--red-bg); color:#e8856e;border-left:2px solid var(--red);}
+.vs-item.good{background:var(--grn-bg);color:#6ddaa4;border-left:2px solid var(--green);}
+.vs-mid{display:flex;align-items:center;justify-content:center;padding-top:32px;}
+.vs-arrow{font-size:22px;color:var(--gold);}
+
+/* GOV CARDS */
+.gov-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:32px;}
+.gov-card{
+  background:var(--navy2);border:1px solid var(--border);
+  border-radius:12px;padding:26px;
+}
+.gov-card-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.gov-circle{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.gov-role{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;margin-bottom:3px;}
+.gov-card h4{font-size:15px;font-weight:500;}
+.gov-card p{font-size:14px;color:var(--t2);line-height:1.65;}
+
+/* HIERARCHY */
+.hier-label{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--t3);margin-bottom:16px;margin-top:32px;
+}
+.hier-strip{
+  display:flex;gap:0;
+  background:var(--navy2);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+}
+.hier-item{
+  flex:1;padding:18px 12px;text-align:center;
+  border-right:1px solid var(--border);
+}
+.hier-item:last-child{border-right:none;}
+.hier-num{
+  width:26px;height:26px;border-radius:50%;background:var(--gold);
+  color:var(--navy);font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 10px;
+}
+.hier-item.dim .hier-num{background:var(--t3);color:var(--navy2);}
+.hier-name{font-size:14px;font-weight:500;margin-bottom:4px;}
+.hier-sub{font-size:12px;color:var(--t3);line-height:1.4;}
+
+/* TRIGGERS ROW */
+.trigger-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
+.trigger-card{
+  background:var(--navy2);border:1px solid var(--border);
+  border-radius:10px;padding:22px 24px;
+}
+.trigger-card .tc-label{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--t3);margin-bottom:10px;
+}
+.trigger-card p{font-size:14px;color:var(--t2);line-height:1.65;}
+
+/* KPIS */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:40px;}
+.kpi{
+  background:var(--navy2);border:1px solid var(--border);
+  border-radius:12px;padding:28px 16px;text-align:center;
+}
+.kpi-val{
+  font-family:'Playfair Display',serif;
+  font-size:52px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:8px;
+}
+.kpi-lbl{font-size:13px;color:var(--t2);line-height:1.5;}
+
+/* CLOSING */
+.closing-compare{
+  background:var(--navy);border:1px solid var(--border);
+  border-radius:14px;padding:36px;margin-top:32px;
+}
+.closing-compare .cols{display:grid;grid-template-columns:1fr 1fr;gap:36px;}
+.closing-footer{
+  text-align:center;padding:36px 0 0;
+  border-top:1px solid var(--border);margin-top:36px;
+}
+.closing-footer .stamp{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;
+  color:var(--t3);margin-bottom:14px;
+}
+.closing-footer p{font-size:16px;color:var(--t2);max-width:560px;margin:0 auto;line-height:1.8;}
+
+/* GLOW */
+.glow{
+  position:absolute;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(201,168,76,.06) 0%,transparent 70%);
+}
+
+/* SCROLL CUE */
+.sc{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:var(--t3);font-size:10px;letter-spacing:2px;font-family:'DM Mono',monospace;
+  animation:bob 2.2s ease-in-out infinite;
+}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
+
+/* FADE IN */
+.fi{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+.fi.v{opacity:1;transform:translateY(0);}
+.fi:nth-child(2){transition-delay:.09s}
+.fi:nth-child(3){transition-delay:.18s}
+.fi:nth-child(4){transition-delay:.27s}
+.fi:nth-child(5){transition-delay:.36s}
+
+/* RESPONSIVE */
+@media(max-width:760px){
+  .slide{padding:80px 24px 60px;}
+  .gov-row,.kpi-row,.dp-cols.c2,.dp-cols.c3,.trigger-row,.closing-compare .cols{grid-template-columns:1fr;}
+  .vs-row{grid-template-columns:1fr;}.vs-mid{display:none;}
+  .bubble{max-width:none;}
+  .hier-strip{flex-wrap:wrap;}
+  nav .nav-slides{display:none;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">SDM · Segmentación de Clientes</div>
+  <div class="nav-slides">
+    <button class="nav-btn on" onclick="go('s1')">Inicio</button>
+    <button class="nav-btn"    onclick="go('s2')">Problema</button>
+    <button class="nav-btn"    onclick="go('s3')">Solución</button>
+    <button class="nav-btn"    onclick="go('s4')">Segmentos</button>
+    <button class="nav-btn"    onclick="go('s5')">Gobierno</button>
+    <button class="nav-btn"    onclick="go('s6')">Cierre</button>
+  </div>
+</nav>
+<div id="prog-bar"><div id="prog-fill"></div></div>
+
+<!-- ════════════════════════════════════
+     S1 · PORTADA
+════════════════════════════════════ -->
+<section class="slide" id="s1" style="background:var(--navy);">
+  <div class="glow" style="width:720px;height:720px;top:-220px;right:-200px;"></div>
+  <div class="inner">
+    <div class="chip gold fi">Comité de Dirección · Abril 2026</div>
+    <h1 class="fi">Segmentación<br>Unificada de<br><em>Clientes PJ</em></h1>
+    <p class="lead fi">Un único modelo de segmentación — integrado, gobernado y con actualización diaria — compartido por Finance, Riesgos y Client Solutions.</p>
+    <div class="meta-row fi">
+      <div class="meta-item">
+        <span class="meta-lbl">Ámbito</span>
+        <span class="meta-val">Data Factory · Finance Data</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-lbl">Versión</span>
+        <span class="meta-val">3.0 · Abril 2026</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-lbl">Dominios involucrados</span>
+        <span class="meta-val">Finance · Riesgos · Client Solutions</span>
+      </div>
+    </div>
+  </div>
+  <div class="sc">↓ explorar</div>
+</section>
+
+<!-- ════════════════════════════════════
+     S2 · EL PROBLEMA
+════════════════════════════════════ -->
+<section class="slide" id="s2" style="background:var(--navy2);">
+  <div class="glow" style="width:520px;height:520px;bottom:-160px;left:-120px;background:radial-gradient(circle,rgba(217,79,61,.07) 0%,transparent 70%);"></div>
+  <div class="inner">
+    <div class="chip red fi">El problema</div>
+    <h2 class="fi">Tres dominios.<br>Tres verdades distintas.</h2>
+    <p class="lead fi">Cada área construía su propia segmentación de forma independiente, con criterios incompatibles entre sí. Hacé clic en cada uno para ver el detalle.</p>
+
+    <div class="bubble-grid fi" id="bg-prob">
+      <div class="bubble" onclick="openBubble('bp','cs')">
+        <span class="b-icon" style="color:var(--blue)">◉</span>
+        <div class="b-title">Client Solutions</div>
+        <div class="b-hint">Visión comercial</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bp','risk')">
+        <span class="b-icon" style="color:var(--red)">◉</span>
+        <div class="b-title">Riesgos</div>
+        <div class="b-hint">Visión de admisión</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bp','fin')">
+        <span class="b-icon" style="color:var(--gold)">◉</span>
+        <div class="b-title">Finance</div>
+        <div class="b-hint">Visión regulatoria</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bp','impact')">
+        <span class="b-icon" style="color:var(--red)">⚠</span>
+        <div class="b-title">Impacto en el negocio</div>
+        <div class="b-hint">Consecuencias reales</div>
+        <div class="b-dot"></div>
+      </div>
+    </div>
+
+    <div class="detail-panel" id="bp-panel"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     S3 · LA SOLUCIÓN
+════════════════════════════════════ -->
+<section class="slide" id="s3" style="background:var(--navy);">
+  <div class="glow" style="width:620px;height:620px;top:-120px;right:-180px;background:radial-gradient(circle,rgba(46,194,126,.06) 0%,transparent 70%);"></div>
+  <div class="inner">
+    <div class="chip grn fi">La nueva solución</div>
+    <h2 class="fi">Un modelo unificado.<br>Un dato de referencia.</h2>
+    <p class="lead fi">La nueva arquitectura integra los tres dominios en un proceso automático, con reglas claras de prioridad y actualización diaria. Explorá cada pilar.</p>
+
+    <div class="bubble-grid fi" id="bg-sol">
+      <div class="bubble" onclick="openBubble('bs','universo')">
+        <span class="b-icon" style="color:var(--gold)">🌐</span>
+        <div class="b-title">Universo único de clientes</div>
+        <div class="b-hint">¿A quién segmentamos?</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bs','variables')">
+        <span class="b-icon" style="color:var(--blue)">📐</span>
+        <div class="b-title">Variables del modelo</div>
+        <div class="b-hint">¿Con qué información?</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bs','periodicidad')">
+        <span class="b-icon" style="color:var(--green)">🔄</span>
+        <div class="b-title">Actualización diaria</div>
+        <div class="b-hint">¿Con qué frecuencia?</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bs','contagio')">
+        <span class="b-icon" style="color:var(--red)">🔗</span>
+        <div class="b-title">Grupos económicos</div>
+        <div class="b-hint">¿Cómo se tratan los grupos?</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bs','ventas')">
+        <span class="b-icon" style="color:var(--gold)">💰</span>
+        <div class="b-title">Ventas como dato único</div>
+        <div class="b-hint">La variable más crítica</div>
+        <div class="b-dot"></div>
+      </div>
+    </div>
+
+    <div class="detail-panel" id="bs-panel"></div>
+
+    <div class="vs-row fi">
+      <div>
+        <div class="vs-label r">Antes</div>
+        <div class="vs-item bad">Criterios propios en cada área, sin consenso</div>
+        <div class="vs-item bad">El mismo cliente podía tener tres segmentos distintos</div>
+        <div class="vs-item bad">Reconciliación manual entre áreas</div>
+        <div class="vs-item bad">Sin trazabilidad ni auditoría unificada</div>
+      </div>
+      <div class="vs-mid"><div class="vs-arrow">→</div></div>
+      <div>
+        <div class="vs-label g">Ahora</div>
+        <div class="vs-item good">Criterio único, acordado y gobernado</div>
+        <div class="vs-item good">Un único segmento por cliente, tres capas coherentes</div>
+        <div class="vs-item good">Automatización diaria sin intervención manual</div>
+        <div class="vs-item good">Un solo identificador como punto de verdad auditable</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     S4 · SEGMENTOS
+════════════════════════════════════ -->
+<section class="slide" id="s4" style="background:var(--navy2);">
+  <div class="inner">
+    <div class="chip gold fi">Arquitectura de segmentos</div>
+    <h2 class="fi">Tres capas.<br>Una sola fuente de verdad.</h2>
+    <p class="lead fi">Cada capa responde a una necesidad distinta — regulatoria, comercial o de riesgo — y se construye de forma coherente sobre la anterior. Hacé clic para ver cada una.</p>
+
+    <div class="bubble-grid fi" id="bg-seg">
+      <div class="bubble" onclick="openBubble('bseg','reg')">
+        <span class="b-icon" style="color:var(--gold)">⬡</span>
+        <div class="b-title">Segmento Regulatorio</div>
+        <div class="b-hint">Base del modelo · Finance</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bseg','com')">
+        <span class="b-icon" style="color:var(--blue)">⬡</span>
+        <div class="b-title">Segmento Comercial</div>
+        <div class="b-hint">Gestión de carteras · Client Solutions</div>
+        <div class="b-dot"></div>
+      </div>
+      <div class="bubble" onclick="openBubble('bseg','adm')">
+        <span class="b-icon" style="color:var(--green)">⬡</span>
+        <div class="b-title">Segmento de Admisión</div>
+        <div class="b-hint">Criterio de riesgo · GRM</div>
+        <div class="b-dot"></div>
+      </div>
+    </div>
+
+    <div class="detail-panel" id="bseg-panel"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     S5 · GOBIERNO
+════════════════════════════════════ -->
+<section class="slide" id="s5" style="background:var(--navy);">
+  <div class="inner">
+    <div class="chip gold fi">Gobierno y control</div>
+    <h2 class="fi">Roles claros.<br>Reglas compartidas.</h2>
+    <p class="lead fi">Cada área tiene una responsabilidad definida sobre el modelo. Las reglas de actualización y prioridad de fuentes son compartidas y automáticas.</p>
+
+    <div class="gov-row fi">
+      <div class="gov-card">
+        <div class="gov-card-top">
+          <div class="gov-circle" style="background:var(--gold-bg);">💼</div>
+          <div>
+            <div class="gov-role" style="color:var(--gold)">Finance</div>
+            <h4>Dueño del modelo</h4>
+          </div>
+        </div>
+        <p>Define quiénes son los clientes a segmentar y es responsable de la capa regulatoria, base del modelo.</p>
+      </div>
+      <div class="gov-card">
+        <div class="gov-card-top">
+          <div class="gov-circle" style="background:var(--red-bg);">🔍</div>
+          <div>
+            <div class="gov-role" style="color:var(--red)">Riesgos (GRM)</div>
+            <h4>Calidad y admisión</h4>
+          </div>
+        </div>
+        <p>Responsable de la calidad de la información de ventas y de la capa de segmentación para admisión de riesgos.</p>
+      </div>
+      <div class="gov-card">
+        <div class="gov-card-top">
+          <div class="gov-circle" style="background:var(--blu-bg);">🤝</div>
+          <div>
+            <div class="gov-role" style="color:var(--blue)">Client Solutions</div>
+            <h4>Visión comercial</h4>
+          </div>
+        </div>
+        <p>Responsable de la capa comercial, la gestión de grupos de empresas vinculadas y la asignación de bancas.</p>
+      </div>
+    </div>
+
+    <div class="fi">
+      <div class="hier-label">Jerarquía de fuentes de ventas — ante un conflicto, prevalece la de mayor prioridad</div>
+      <div class="hier-strip">
+        <div class="hier-item">
+          <div class="hier-num">1</div>
+          <div class="hier-name">Lince</div>
+          <div class="hier-sub">Fuente externa · máxima calidad</div>
+        </div>
+        <div class="hier-item">
+          <div class="hier-num">2</div>
+          <div class="hier-name">Balances internos</div>
+          <div class="hier-sub">Declaraciones contables del banco</div>
+        </div>
+        <div class="hier-item">
+          <div class="hier-num">3</div>
+          <div class="hier-name">Grilla comercial</div>
+          <div class="hier-sub">Información de gestores</div>
+        </div>
+        <div class="hier-item">
+          <div class="hier-num">4</div>
+          <div class="hier-name">Web PYME</div>
+          <div class="hier-sub">Solicitudes aprobadas</div>
+        </div>
+        <div class="hier-item dim">
+          <div class="hier-num">5</div>
+          <div class="hier-name">Sistema contable</div>
+          <div class="hier-sub">Fuente residual</div>
+        </div>
+        <div class="hier-item dim">
+          <div class="hier-num">6</div>
+          <div class="hier-name">Estimación BCU</div>
+          <div class="hier-sub">Último recurso</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trigger-row fi">
+      <div class="trigger-card">
+        <div class="tc-label">Revisión anual</div>
+        <p>Una vez al año, las tres áreas validan los umbrales de ventas que definen cada segmento para ajustarlos a la realidad económica o estratégica del banco.</p>
+      </div>
+      <div class="trigger-card">
+        <div class="tc-label">Actualizaciones automáticas</div>
+        <p>Cuando llega nueva información de ventas de mayor calidad, cuando cambia la situación de un cliente o tras la actualización mensual del Banco Central, el segmento se recalcula de forma automática.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     S6 · CIERRE
+════════════════════════════════════ -->
+<section class="slide" id="s6" style="background:var(--navy2);">
+  <div class="glow" style="width:750px;height:750px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+  <div class="inner">
+    <div class="chip gold fi">Resumen ejecutivo</div>
+    <h2 class="fi">De silos a un dato<br><em>único y confiable</em></h2>
+
+    <div class="kpi-row fi">
+      <div class="kpi">
+        <div class="kpi-val">3</div>
+        <div class="kpi-lbl">Áreas integradas en un solo modelo</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">6</div>
+        <div class="kpi-lbl">Fuentes de ventas con prioridad definida</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">3</div>
+        <div class="kpi-lbl">Capas de segmento coherentes entre sí</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">1d</div>
+        <div class="kpi-lbl">Periodicidad de actualización automática</div>
+      </div>
+    </div>
+
+    <div class="closing-compare fi">
+      <div class="cols">
+        <div>
+          <div class="vs-label r" style="margin-bottom:16px;">Modelo anterior</div>
+          <div class="vs-item bad">Cada área segmentaba con sus propios criterios</div>
+          <div class="vs-item bad" style="margin-top:10px;">El mismo cliente podía tener tres segmentos distintos</div>
+          <div class="vs-item bad" style="margin-top:10px;">Reconciliación manual entre áreas</div>
+          <div class="vs-item bad" style="margin-top:10px;">Sin posibilidad de auditar ni rastrear decisiones</div>
+        </div>
+        <div>
+          <div class="vs-label g" style="margin-bottom:16px;">Nueva solución SDM</div>
+          <div class="vs-item good">Criterio único, acordado entre las tres áreas</div>
+          <div class="vs-item good" style="margin-top:10px;">Un único segmento por cliente, con tres capas coherentes</div>
+          <div class="vs-item good" style="margin-top:10px;">Proceso automático y diario, sin intervención manual</div>
+          <div class="vs-item good" style="margin-top:10px;">Trazabilidad completa: cada segmento es auditable</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="closing-footer fi">
+      <div class="stamp">Finance Data · Data Factory · v3.0 · Abril 2026</div>
+      <p>La nueva segmentación SDM establece la base para una gestión de clientes coherente, auditable y escalable — alineando las tres áreas sobre un único dato de referencia.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ══ DATA ══════════════════════════════════════════════════════ */
+const DATA = {
+  bp: {
+    cs: {
+      title: 'Client Solutions — cómo segmentaba',
+      cols: 'c2',
+      blocks: [
+        { h: 'Clientes considerados',
+          p: 'Solo miraba las cuentas activas del banco: titulares firmantes y clientes con potencial de venta. Dejaba afuera muchos clientes que las otras áreas sí incluían.' },
+        { h: 'Información de ventas',
+          p: 'Usaba los balances declarados ante el banco, exigiendo que tuvieran menos de dos años de antigüedad. Si el dato era más viejo, lo descartaba.' },
+        { h: 'Grupos de empresas',
+          p: 'Para definir qué empresa era la "cabeza" de un grupo económico, elegía la que tuviera el código de grupo más bajo, sin importar cuál era la más grande.' },
+        { h: 'Empleados del banco',
+          p: 'Todos los empleados del banco eran tratados automáticamente como clientes institucionales financieros, independientemente de su perfil real.' }
+      ]
+    },
+    risk: {
+      title: 'Riesgos — cómo segmentaba',
+      cols: 'c2',
+      blocks: [
+        { h: 'Clientes considerados',
+          p: 'Solo analizaba empresas (personas jurídicas), identificadas por su RUT fiscal. No incluía personas físicas ni miraba cuentas individuales.' },
+        { h: 'Información de ventas',
+          p: 'Intentaba obtener ventas desde varias fuentes en cascada. Si no encontraba nada, estimaba las ventas asumiendo que equivalen al 40% de la deuda del cliente con el sistema financiero.' },
+        { h: 'Grupos de empresas',
+          p: 'Para definir la empresa principal de un grupo, elegía la de mayor deuda en el sistema financiero, priorizando el peso económico real.' },
+        { h: 'Empleados del banco',
+          p: 'No los incluía en ninguna regla especial, a diferencia de Client Solutions que los trataba como instituciones financieras.' }
+      ]
+    },
+    fin: {
+      title: 'Finance — cómo segmentaba',
+      cols: 'c2',
+      blocks: [
+        { h: 'Clientes considerados',
+          p: 'El perímetro más amplio de los tres: incluía todos los titulares representativos de cuentas activas, tanto empresas como personas físicas.' },
+        { h: 'Información de ventas',
+          p: 'Tomaba la facturación anual directamente desde el sistema contable del banco, sin cascada de fuentes ni estimaciones.' },
+        { h: 'Deuda con el banco',
+          p: 'Calculaba la deuda siguiendo normas contables internacionales (IFRS9), sumando todos los productos crediticios de cada cuenta.' },
+        { h: 'Grupos de empresas',
+          p: 'Usaba el mismo criterio que Riesgos (mayor deuda) pero además marcaba las operaciones entre empresas del mismo grupo para evitar doble conteo.' }
+      ]
+    },
+    impact: {
+      title: 'Impacto real en el negocio',
+      cols: 'c2',
+      blocks: [
+        { h: '💸 Clasificaciones erróneas con impacto millonario',
+          p: 'Una misma empresa podía aparecer como cliente minorista en un área y como gran empresa en otra, afectando límites de crédito, condiciones comerciales y reportes regulatorios.' },
+        { h: '📉 Ventas estimadas con alta incertidumbre',
+          p: 'Cuando Riesgos estimaba ventas desde la deuda del cliente, cualquier fluctuación de esa deuda cambiaba el segmento, generando inestabilidad sin base real.' },
+        { h: '⚖️ Saldos que no cuadraban entre áreas',
+          p: 'Finance y Client Solutions calculaban la deuda con métodos distintos. Cualquier reporte que cruzara datos de ambas áreas generaba discrepancias que requerían reconciliación manual.' },
+        { h: '🔀 Sin acuerdo sobre grupos económicos',
+          p: 'Un grupo empresarial podía tener distintas empresas como "cabeza de grupo" según el área que lo mirara, rompiendo la coherencia de límites, carteras y exposición consolidada.' }
+      ]
+    }
+  },
+
+  bs: {
+    universo: {
+      title: 'Universo único de clientes',
+      cols: 'c2',
+      blocks: [
+        { h: 'Un solo criterio de entrada',
+          p: 'Se adopta el perímetro más amplio de los tres dominios: todos los titulares representativos de cuentas activas en el banco. Esto garantiza que ningún cliente quede fuera del modelo.' },
+        { h: 'El cliente, no la cuenta',
+          p: 'Se identifica a cada cliente por su documento fiscal (RUT), no por sus cuentas o contratos. Así, un cliente con múltiples productos aparece una sola vez en el modelo.' },
+        { h: 'Empresas y personas físicas',
+          p: 'El modelo separa claramente las empresas (personas jurídicas) de las personas físicas, ya que los criterios de segmentación son distintos para cada grupo.' },
+        { h: 'Base compartida por las tres áreas',
+          p: 'Finance, Riesgos y Client Solutions trabajan sobre el mismo listado de clientes. Ya no hay discrepancias de perímetro entre áreas.' }
+      ]
+    },
+    variables: {
+      title: 'Las variables que definen el segmento',
+      cols: 'c2',
+      blocks: [
+        { h: 'Ventas del grupo económico',
+          p: 'La variable principal. Se suman las ventas de todas las empresas del grupo para determinar el tamaño real del cliente. Esto evita que una empresa grande parezca pequeña por analizar solo una de sus sociedades.' },
+        { h: 'Sector de actividad',
+          p: 'Qué tipo de negocio tiene el cliente: industria, comercio, finanzas, sector público, etc. Se toma del Banco Central como fuente principal.' },
+        { h: 'Tipo de actividad de riesgo',
+          p: 'Ciertos negocios requieren un tratamiento especial independientemente de su tamaño: promotores inmobiliarios, financiación de proyectos y real estate comercial.' },
+        { h: 'Clientes globales',
+          p: 'Se identifica si el cliente tiene exposición con BBVA en otros países, para garantizar una visión consolidada de la relación global.' }
+      ]
+    },
+    periodicidad: {
+      title: 'Actualización diaria del segmento',
+      cols: 'c2',
+      blocks: [
+        { h: 'Foto mensual completa',
+          p: 'Una vez al mes se genera una imagen completa de todos los clientes segmentados al cierre del período. Es la base para los reportes regulatorios y de gestión.' },
+        { h: 'Novedades diarias',
+          p: 'Cada día se incorporan los clientes nuevos y se recalcula el segmento de aquellos cuya clasificación cambió. El dato siempre refleja la realidad más reciente.' },
+        { h: 'Sin intervención manual',
+          p: 'Todo el proceso es automático. Las actualizaciones se disparan por reglas predefinidas, no por decisiones ad hoc de cada área.' },
+        { h: 'Disponible para toda la organización',
+          p: 'El dato de segmentación está disponible en el entorno analítico del banco con fecha de referencia diaria, accesible para cualquier equipo que lo necesite.' }
+      ]
+    },
+    contagio: {
+      title: 'Tratamiento de grupos económicos',
+      cols: 'c2',
+      blocks: [
+        { h: '¿Qué es el "contagio" de segmento?',
+          p: 'Si una empresa del grupo tiene una actividad de riesgo especial (promotor, project finance, real estate), todas las empresas del mismo grupo quedan automáticamente en el segmento más alto, aunque individualmente no alcancen los umbrales de ventas.' },
+        { h: 'Ventas consolidadas del grupo',
+          p: 'Para segmentar a una empresa no miramos solo sus ventas propias, sino las ventas totales del grupo económico al que pertenece. Así reflejamos el tamaño real del cliente.' },
+        { h: 'Empresa vinculadas comercialmente',
+          p: 'Más allá de los grupos económicos formales, también se identifican empresas con vínculos comerciales entre sí. Dentro de este conjunto, el segmento más alto se aplica a todos.' },
+        { h: 'Un solo grupo principal por empresa',
+          p: 'Cuando una empresa pertenece a varios grupos en los registros del Banco Central, se elige el grupo de mayor deuda en el sistema financiero como referencia.' }
+      ]
+    },
+    ventas: {
+      title: 'Ventas: la variable más crítica',
+      cols: 'c2',
+      blocks: [
+        { h: 'Por qué es tan importante',
+          p: 'Las ventas del grupo económico son el principal criterio para clasificar a una empresa en un segmento u otro. Una estimación incorrecta puede mover a un cliente entre Minorista y Gran Empresa.' },
+        { h: 'Seis fuentes, una sola respuesta',
+          p: 'El modelo consulta hasta seis fuentes de información en orden de prioridad. Solo usa la siguiente si la anterior no está disponible. Esto garantiza siempre el mejor dato posible.' },
+        { h: 'Trazabilidad del dato',
+          p: 'Siempre se registra de dónde vino el dato de ventas que se usó. Cualquier auditoría puede ver qué fuente determinó el segmento de cada cliente en cada momento.' },
+        { h: 'Estimación como último recurso',
+          p: 'Solo cuando no existe ningún dato real de ventas, se estima el valor a partir de la deuda del cliente con el sistema financiero. Este caso queda marcado explícitamente.' }
+      ]
+    }
+  },
+
+  bseg: {
+    reg: {
+      title: 'Segmento Regulatorio — la base del modelo',
+      cols: 'c2',
+      blocks: [
+        { h: 'Sector Público y Banco Central',
+          p: 'Los clientes de Administración Pública y el Banco Central quedan en sus propias categorías por su naturaleza institucional, independientemente de sus ventas.' },
+        { h: 'Instituciones financieras',
+          p: 'Bancos, financieras y otras instituciones del sistema financiero se clasifican por su actividad, no por volumen de ventas.' },
+        { h: 'Empresas (más de USD 4 millones de ventas)',
+          p: 'Grandes empresas con ventas del grupo superiores a USD 4 millones anuales. También entran automáticamente las empresas con actividades de riesgo especial (promotores, project finance, real estate).' },
+        { h: 'PYMEs (entre USD 250 mil y USD 4 millones)',
+          p: 'Empresas medianas con ventas del grupo en ese rango.' },
+        { h: 'Comercios y Negocios (hasta USD 250 mil)',
+          p: 'Empresas pequeñas con ventas del grupo por debajo de ese umbral.' },
+        { h: 'Autónomos',
+          p: 'Empresas unipersonales con ventas inferiores a USD 250 mil anuales, identificadas como tal en los sistemas del banco.' }
+      ]
+    },
+    com: {
+      title: 'Segmento Comercial — gestión de carteras',
+      cols: 'c2',
+      blocks: [
+        { h: 'CIB — Corporate & Investment Banking',
+          p: 'Clientes gestionados directamente por la banca corporativa e inversión. Su banca de atención ya los clasifica en este segmento.' },
+        { h: 'Gran Empresa (más de USD 20 millones)',
+          p: 'Las empresas de mayor tamaño, con ventas del grupo por encima de USD 20 millones. Requieren una gestión diferenciada de las empresas medianas.' },
+        { h: 'Empresa (entre USD 4 y 20 millones)',
+          p: 'Empresas grandes pero por debajo del umbral de Gran Empresa.' },
+        { h: 'PYME Alto Valor (entre USD 250 mil y 4 millones)',
+          p: 'PYMEs con mayor volumen, con propuesta de valor diferente a las de menor tamaño.' },
+        { h: 'PYME Bajo Valor (hasta USD 250 mil)',
+          p: 'PYMEs de menor volumen. Incluye también a los autónomos.' },
+        { h: 'Elevación por vínculos comerciales',
+          p: 'Si una empresa tiene vínculo comercial con otra de segmento superior, sube automáticamente al segmento más alto del grupo.' }
+      ]
+    },
+    adm: {
+      title: 'Segmento de Admisión — visión de Riesgos',
+      cols: 'c2',
+      blocks: [
+        { h: '¿Para qué sirve esta capa?',
+          p: 'Define cómo se clasifica a cada cliente a efectos de las políticas de admisión de riesgo y los requisitos normativos que auditan la cartera del banco.' },
+        { h: 'Se construye sobre el Regulatorio',
+          p: 'No es un cálculo independiente: deriva directamente del segmento regulatorio. Esto garantiza coherencia total entre lo que reporta Finance y lo que aplica Riesgos.' },
+        { h: 'Empresas',
+          p: 'Incluye a las grandes empresas, al sector público, al Banco Central y a todas las instituciones financieras.' },
+        { h: 'PYMEs y Autónomos',
+          p: 'Los comercios, negocios y autónomos se agrupan en estas categorías, con políticas de admisión diferenciadas.' }
+      ]
+    }
+  }
+};
+
+/* ══ BUBBLE LOGIC ═══════════════════════════════════════════════ */
+function openBubble(group, key) {
+  const panelId = group + '-panel';
+  const panel   = document.getElementById(panelId);
+  const gridId  = 'bg-' + group.replace(/^b(seg)?/,'').replace(/^p$/,'prob').replace(/^s$/,'sol').replace(/^seg$/,'seg');
+
+  // map group key → grid id
+  const gridMap = { bp:'prob', bs:'sol', bseg:'seg' };
+  const bubbles = document.querySelectorAll(`#bg-${gridMap[group]} .bubble`);
+  const keys    = Object.keys(DATA[group]);
+  const idx     = keys.indexOf(key);
+  const clicked = [...bubbles][idx];
+
+  const wasOpen = panel.classList.contains('open');
+  const wasSame = clicked && clicked.classList.contains('active');
+
+  bubbles.forEach(b => b.classList.remove('active'));
+  panel.classList.remove('open');
+
+  if (wasOpen && wasSame) return;
+
+  if (clicked) clicked.classList.add('active');
+  const d = DATA[group][key];
+  if (!d) return;
+
+  panel.innerHTML = buildPanel(d);
+  panel.classList.add('open');
+}
+
+function buildPanel(d) {
+  const blocks = d.blocks.map(b =>
+    `<div class="dp-block"><h4>${b.h}</h4><p>${b.p}</p></div>`
+  ).join('');
+  return `<div class="dp-title">${d.title}</div>
+          <div class="dp-cols ${d.cols}">${blocks}</div>`;
+}
+
+/* ══ NAV + PROGRESS ══════════════════════════════════════════════ */
+function go(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
+
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById('prog-fill').style.width = (window.scrollY / h * 100) + '%';
+});
+
+const slides  = document.querySelectorAll('.slide');
+const navBtns = document.querySelectorAll('.nav-btn');
+const ids     = ['s1','s2','s3','s4','s5','s6'];
+
+new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const i = ids.indexOf(e.target.id);
+      navBtns.forEach((b, j) => b.classList.toggle('on', j === i));
+    }
+  });
+}, { threshold: 0.4 }).observe && slides.forEach(s =>
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const i = ids.indexOf(e.target.id);
+        navBtns.forEach((b, j) => b.classList.toggle('on', j === i));
+      }
+    });
+  }, { threshold: 0.4 }).observe(s)
+);
+
+/* ══ FADE IN ══════════════════════════════════════════════════════ */
+const fiObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('v'); fiObs.unobserve(e.target); }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.fi').forEach(el => fiObs.observe(el));
+</script>
+</body>
+</html>
