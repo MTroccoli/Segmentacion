@@ -32,6 +32,12 @@
   --t3: #3a5470;
   --border: rgba(255,255,255,0.07);
 
+  /* BBVA secondary palette */
+  --bbva-orange:    #F5A623;
+  --bbva-orange-bg: rgba(245,166,35,0.1);
+  --bbva-teal:      #00C49A;
+  --bbva-teal-bg:   rgba(0,196,154,0.1);
+
   /* Accent = BBVA sky blue */
   --accent:    var(--bbva-sky);
   --accent-bg: var(--bbva-sky-bg);
@@ -318,25 +324,25 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
         <span class="b-icon" style="color:var(--bbva-sky)">◉</span>
         <div class="b-title">Negocio</div>
         <div class="b-hint">Visión comercial</div>
-        <div class="b-dot"></div>
+        <div class="b-dot" style="background:var(--bbva-sky)"></div>
       </div>
       <div class="bubble" onclick="openBubble('bp','risk')">
-        <span class="b-icon" style="color:var(--red)">◉</span>
+        <span class="b-icon" style="color:var(--bbva-orange)">◉</span>
         <div class="b-title">Riesgos</div>
         <div class="b-hint">Visión de admisión</div>
-        <div class="b-dot"></div>
+        <div class="b-dot" style="background:var(--bbva-orange)"></div>
       </div>
       <div class="bubble" onclick="openBubble('bp','fin')">
-        <span class="b-icon" style="color:var(--bbva-sky)">◉</span>
+        <span class="b-icon" style="color:var(--bbva-teal)">◉</span>
         <div class="b-title">Finance</div>
         <div class="b-hint">Visión regulatoria</div>
-        <div class="b-dot"></div>
+        <div class="b-dot" style="background:var(--bbva-teal)"></div>
       </div>
       <div class="bubble" onclick="openBubble('bp','impact')">
         <span class="b-icon" style="color:var(--red)">⚠</span>
         <div class="b-title">Impacto en el negocio</div>
         <div class="b-hint">Consecuencias reales</div>
-        <div class="b-dot"></div>
+        <div class="b-dot" style="background:var(--red)"></div>
       </div>
     </div>
     <div class="detail-panel" id="bp-panel"></div>
@@ -416,22 +422,22 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
 
     <div class="bubble-grid fi" id="bg-seg">
       <div class="bubble" onclick="openBubble('bseg','reg')">
-        <span class="b-icon" style="color:var(--bbva-sky)">⬡</span>
+        <span class="b-icon" style="color:var(--bbva-teal)">⬡</span>
         <div class="b-title">Segmento Regulatorio</div>
         <div class="b-hint">Base del modelo · Finance</div>
-        <div class="b-dot"></div>
+        <div class="b-dot" style="background:var(--bbva-teal)"></div>
       </div>
       <div class="bubble" onclick="openBubble('bseg','com')">
         <span class="b-icon" style="color:var(--bbva-sky)">⬡</span>
         <div class="b-title">Segmento Comercial</div>
         <div class="b-hint">Gestión de carteras · Negocio</div>
-        <div class="b-dot"></div>
+        <div class="b-dot" style="background:var(--bbva-sky)"></div>
       </div>
       <div class="bubble" onclick="openBubble('bseg','adm')">
-        <span class="b-icon" style="color:var(--green)">⬡</span>
+        <span class="b-icon" style="color:var(--bbva-orange)">⬡</span>
         <div class="b-title">Segmento de Admisión</div>
-        <div class="b-hint">Criterio de riesgo · GRM</div>
-        <div class="b-dot"></div>
+        <div class="b-hint">Criterio de riesgo · Riesgos</div>
+        <div class="b-dot" style="background:var(--bbva-orange)"></div>
       </div>
     </div>
     <div class="detail-panel" id="bseg-panel"></div>
@@ -449,9 +455,9 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
     <div class="gov-row fi">
       <div class="gov-card">
         <div class="gov-card-top">
-          <div class="gov-circle" style="background:var(--bbva-sky-bg);">💼</div>
+          <div class="gov-circle" style="background:var(--bbva-teal-bg);">💼</div>
           <div>
-            <div class="gov-role" style="color:var(--bbva-sky)">Finance</div>
+            <div class="gov-role" style="color:var(--bbva-teal)">Finance</div>
             <h4>Dueño del modelo</h4>
           </div>
         </div>
@@ -459,9 +465,9 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
       </div>
       <div class="gov-card">
         <div class="gov-card-top">
-          <div class="gov-circle" style="background:var(--red-bg);">🔍</div>
+          <div class="gov-circle" style="background:var(--bbva-orange-bg);">🔍</div>
           <div>
-            <div class="gov-role" style="color:var(--red)">Riesgos (GRM)</div>
+            <div class="gov-role" style="color:var(--bbva-orange)">Riesgos (GRM)</div>
             <h4>Calidad y admisión</h4>
           </div>
         </div>
@@ -594,6 +600,7 @@ const DATA = {
   bp: {
     cs: {
       title: 'Negocio — cómo segmentaba',
+      color: 'var(--bbva-sky)',
       cols: 'c2',
       blocks: [
         { h:'Clientes considerados', p:'Solo miraba las cuentas activas del banco: titulares firmantes y clientes con potencial de venta. Dejaba afuera muchos clientes que las otras áreas sí incluían.' },
@@ -604,6 +611,7 @@ const DATA = {
     },
     risk: {
       title: 'Riesgos — cómo segmentaba',
+      color: 'var(--bbva-orange)',
       cols: 'c2',
       blocks: [
         { h:'Clientes considerados', p:'Solo analizaba empresas (personas jurídicas), identificadas por su RUT fiscal. No incluía personas físicas ni miraba cuentas individuales.' },
@@ -614,6 +622,7 @@ const DATA = {
     },
     fin: {
       title: 'Finance — cómo segmentaba',
+      color: 'var(--bbva-teal)',
       cols: 'c2',
       blocks: [
         { h:'Clientes considerados', p:'El perímetro más amplio de los tres: incluía todos los titulares representativos de cuentas activas, tanto empresas como personas físicas.' },
@@ -624,6 +633,7 @@ const DATA = {
     },
     impact: {
       title: 'Impacto real en el negocio',
+      color: 'var(--red)',
       cols: 'c2',
       blocks: [
         { h:'💸 Clasificaciones erróneas con impacto millonario', p:'Una misma empresa podía aparecer como cliente minorista en un área y como gran empresa en otra, afectando límites de crédito, condiciones comerciales y reportes regulatorios.' },
@@ -636,6 +646,7 @@ const DATA = {
   bs: {
     universo: {
       title: 'Universo único de clientes',
+      color: 'var(--bbva-sky)',
       cols: 'c2',
       blocks: [
         { h:'Un solo criterio de entrada', p:'Se adopta el perímetro más amplio: todos los titulares representativos de cuentas activas en el banco. Ningún cliente queda fuera del modelo.' },
@@ -646,6 +657,7 @@ const DATA = {
     },
     variables: {
       title: 'Las variables que definen el segmento',
+      color: 'var(--bbva-sky)',
       cols: 'c2',
       blocks: [
         { h:'Ventas del grupo económico', p:'La variable principal. Se suman las ventas de todas las empresas del grupo para determinar el tamaño real del cliente, evitando que una empresa grande parezca pequeña.' },
@@ -656,6 +668,7 @@ const DATA = {
     },
     periodicidad: {
       title: 'Actualización diaria del segmento',
+      color: 'var(--bbva-sky)',
       cols: 'c2',
       blocks: [
         { h:'Foto mensual completa', p:'Una vez al mes se genera una imagen completa de todos los clientes segmentados al cierre del período. Es la base para los reportes regulatorios y de gestión.' },
@@ -666,6 +679,7 @@ const DATA = {
     },
     contagio: {
       title: 'Tratamiento de grupos económicos',
+      color: 'var(--bbva-sky)',
       cols: 'c2',
       blocks: [
         { h:'¿Qué es el "contagio" de segmento?', p:'Si una empresa del grupo tiene una actividad de riesgo especial, todas las empresas del mismo grupo quedan automáticamente en el segmento más alto, aunque individualmente no alcancen los umbrales de ventas.' },
@@ -676,6 +690,7 @@ const DATA = {
     },
     ventas: {
       title: 'Ventas: la variable más crítica',
+      color: 'var(--bbva-sky)',
       cols: 'c2',
       blocks: [
         { h:'Por qué es tan importante', p:'Las ventas del grupo económico son el principal criterio para clasificar a una empresa. Una estimación incorrecta puede mover a un cliente entre Minorista y Gran Empresa.' },
@@ -688,6 +703,7 @@ const DATA = {
   bseg: {
     reg: {
       title: 'Segmento Regulatorio — la base del modelo',
+      color: 'var(--bbva-teal)',
       cols: 'c2',
       blocks: [
         { h:'Sector Público y Banco Central', p:'Los clientes de Administración Pública y el Banco Central quedan en sus propias categorías por su naturaleza institucional, independientemente de sus ventas.' },
@@ -700,6 +716,7 @@ const DATA = {
     },
     com: {
       title: 'Segmento Comercial — gestión de carteras',
+      color: 'var(--bbva-sky)',
       cols: 'c2',
       blocks: [
         { h:'CIB — Corporate & Investment Banking', p:'Clientes gestionados directamente por la banca corporativa e inversión. Su banca de atención ya los clasifica en este segmento.' },
@@ -712,6 +729,7 @@ const DATA = {
     },
     adm: {
       title: 'Segmento de Admisión — visión de Riesgos',
+      color: 'var(--bbva-orange)',
       cols: 'c2',
       blocks: [
         { h:'¿Para qué sirve esta capa?', p:'Define cómo se clasifica a cada cliente a efectos de las políticas de admisión de riesgo y los requisitos normativos que auditan la cartera del banco.' },
@@ -737,7 +755,8 @@ function openBubble(group, key) {
   if (clicked) clicked.classList.add('active');
   const d = DATA[group][key];
   if (!d) return;
-  panel.innerHTML = `<div class="dp-title">${d.title}</div><div class="dp-cols ${d.cols}">${d.blocks.map(b=>`<div class="dp-block"><h4>${b.h}</h4><p>${b.p}</p></div>`).join('')}</div>`;
+  const c = d.color || 'var(--bbva-sky)';
+  panel.innerHTML = `<div class="dp-title" style="color:${c};border-left:3px solid ${c};padding-left:12px;">${d.title}</div><div class="dp-cols ${d.cols}">${d.blocks.map(b=>`<div class="dp-block"><h4>${b.h}</h4><p>${b.p}</p></div>`).join('')}</div>`;
   panel.classList.add('open');
 }
 
