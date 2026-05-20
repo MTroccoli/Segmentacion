@@ -285,7 +285,7 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
     <div class="chip sky fi">Abril 2026</div>
     <h1 class="fi">Segmentación Unificada de</h1>
     <div class="title-pj fi">Clientes persona jurídica</div>
-    <p class="lead fi">Un único modelo de segmentación — integrado, gobernado y con actualización diaria — compartido por Finance, Riesgos y Client Solutions.</p>
+    <p class="lead fi">Un único modelo de segmentación — integrado, gobernado y con actualización diaria — compartido por Finance, Riesgos y Negocio.</p>
     <div class="meta-row fi">
       <div class="meta-item">
         <span class="meta-lbl">Ámbito</span>
@@ -297,7 +297,7 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
       </div>
       <div class="meta-item">
         <span class="meta-lbl">Dominios involucrados</span>
-        <span class="meta-val">Finance · Riesgos · Client Solutions</span>
+        <span class="meta-val">Finance · Riesgos · Negocio</span>
       </div>
     </div>
   </div>
@@ -316,7 +316,7 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
     <div class="bubble-grid fi" id="bg-prob">
       <div class="bubble" onclick="openBubble('bp','cs')">
         <span class="b-icon" style="color:var(--bbva-sky)">◉</span>
-        <div class="b-title">Client Solutions</div>
+        <div class="b-title">Negocio</div>
         <div class="b-hint">Visión comercial</div>
         <div class="b-dot"></div>
       </div>
@@ -424,7 +424,7 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
       <div class="bubble" onclick="openBubble('bseg','com')">
         <span class="b-icon" style="color:var(--bbva-sky)">⬡</span>
         <div class="b-title">Segmento Comercial</div>
-        <div class="b-hint">Gestión de carteras · Client Solutions</div>
+        <div class="b-hint">Gestión de carteras · Negocio</div>
         <div class="b-dot"></div>
       </div>
       <div class="bubble" onclick="openBubble('bseg','adm')">
@@ -471,7 +471,7 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
         <div class="gov-card-top">
           <div class="gov-circle" style="background:var(--bbva-sky-bg);">🤝</div>
           <div>
-            <div class="gov-role" style="color:var(--bbva-sky)">Client Solutions</div>
+            <div class="gov-role" style="color:var(--bbva-sky)">Negocio</div>
             <h4>Visión comercial</h4>
           </div>
         </div>
@@ -543,6 +543,26 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
       <div class="kpi"><div class="kpi-val">1d</div><div class="kpi-lbl">Periodicidad de actualización automática</div></div>
     </div>
 
+    <div class="fi" style="margin-top:28px;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:14px;">Hallazgos sobre la base procesada</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="background:var(--navy);border:1px solid rgba(224,82,82,.25);border-left:3px solid var(--red);border-radius:10px;padding:24px 28px;display:flex;align-items:center;gap:24px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--red);line-height:1;flex-shrink:0;">9%</div>
+          <div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--t1);">Bancas desviadas de su segmento</div>
+            <div style="font-size:13px;color:var(--t2);line-height:1.6;">Clientes atendidos por una banca que no corresponde a su segmento real, según el nuevo modelo unificado.</div>
+          </div>
+        </div>
+        <div style="background:var(--navy);border:1px solid rgba(224,82,82,.25);border-left:3px solid var(--red);border-radius:10px;padding:24px 28px;display:flex;align-items:center;gap:24px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--red);line-height:1;flex-shrink:0;">1,5%</div>
+          <div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--t1);">Segmentos de Negocio desalineados</div>
+            <div style="font-size:13px;color:var(--t2);line-height:1.6;">Clientes cuyo segmento comercial no es coherente con su segmento regulatorio ni de admisión de riesgos.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="closing-compare fi">
       <div class="cols">
         <div>
@@ -573,7 +593,7 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
 const DATA = {
   bp: {
     cs: {
-      title: 'Client Solutions — cómo segmentaba',
+      title: 'Negocio — cómo segmentaba',
       cols: 'c2',
       blocks: [
         { h:'Clientes considerados', p:'Solo miraba las cuentas activas del banco: titulares firmantes y clientes con potencial de venta. Dejaba afuera muchos clientes que las otras áreas sí incluían.' },
@@ -589,7 +609,7 @@ const DATA = {
         { h:'Clientes considerados', p:'Solo analizaba empresas (personas jurídicas), identificadas por su RUT fiscal. No incluía personas físicas ni miraba cuentas individuales.' },
         { h:'Información de ventas', p:'Intentaba obtener ventas desde varias fuentes en cascada. Si no encontraba nada, estimaba las ventas asumiendo que equivalen al 40% de la deuda del cliente con el sistema financiero.' },
         { h:'Grupos de empresas', p:'Para definir la empresa principal de un grupo, elegía la de mayor deuda en el sistema financiero, priorizando el peso económico real.' },
-        { h:'Empleados del banco', p:'No los incluía en ninguna regla especial, a diferencia de Client Solutions que los trataba como instituciones financieras.' }
+        { h:'Empleados del banco', p:'No los incluía en ninguna regla especial, a diferencia de Negocio que los trataba como instituciones financieras.' }
       ]
     },
     fin: {
@@ -608,7 +628,7 @@ const DATA = {
       blocks: [
         { h:'💸 Clasificaciones erróneas con impacto millonario', p:'Una misma empresa podía aparecer como cliente minorista en un área y como gran empresa en otra, afectando límites de crédito, condiciones comerciales y reportes regulatorios.' },
         { h:'📉 Ventas estimadas con alta incertidumbre', p:'Cuando Riesgos estimaba ventas desde la deuda del cliente, cualquier fluctuación de esa deuda cambiaba el segmento, generando inestabilidad sin base real.' },
-        { h:'⚖️ Saldos que no cuadraban entre áreas', p:'Finance y Client Solutions calculaban la deuda con métodos distintos. Cualquier reporte que cruzara datos de ambas áreas generaba discrepancias que requerían reconciliación manual.' },
+        { h:'⚖️ Saldos que no cuadraban entre áreas', p:'Finance y Negocio calculaban la deuda con métodos distintos. Cualquier reporte que cruzara datos de ambas áreas generaba discrepancias que requerían reconciliación manual.' },
         { h:'🔀 Sin acuerdo sobre grupos económicos', p:'Un grupo empresarial podía tener distintas empresas como "cabeza de grupo" según el área que lo mirara, rompiendo la coherencia de límites, carteras y exposición consolidada.' }
       ]
     }
@@ -621,7 +641,7 @@ const DATA = {
         { h:'Un solo criterio de entrada', p:'Se adopta el perímetro más amplio: todos los titulares representativos de cuentas activas en el banco. Ningún cliente queda fuera del modelo.' },
         { h:'El cliente, no la cuenta', p:'Se identifica a cada cliente por su documento fiscal (RUT), no por sus cuentas o contratos. Un cliente con múltiples productos aparece una sola vez.' },
         { h:'Empresas y personas físicas', p:'El modelo separa claramente las empresas de las personas físicas, ya que los criterios de segmentación son distintos para cada grupo.' },
-        { h:'Base compartida por las tres áreas', p:'Finance, Riesgos y Client Solutions trabajan sobre el mismo listado de clientes. Sin discrepancias de perímetro entre áreas.' }
+        { h:'Base compartida por las tres áreas', p:'Finance, Riesgos y Negocio trabajan sobre el mismo listado de clientes. Sin discrepancias de perímetro entre áreas.' }
       ]
     },
     variables: {
