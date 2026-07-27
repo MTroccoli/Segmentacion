@@ -276,8 +276,7 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
     <button class="nav-btn"    onclick="go('s2')">Problema</button>
     <button class="nav-btn"    onclick="go('s3')">Solución</button>
     <button class="nav-btn"    onclick="go('s4')">Segmentos</button>
-    <button class="nav-btn"    onclick="go('s5')">Gobierno</button>
-    <button class="nav-btn"    onclick="go('s6')">Cierre</button>
+    <button class="nav-btn"    onclick="go('s5')">Cierre</button>
   </div>
 </nav>
 <div id="prog-bar"><div id="prog-fill"></div></div>
@@ -444,123 +443,26 @@ h2 em{color:var(--bbva-sky);font-style:normal;font-weight:900;}
   </div>
 </section>
 
-<!-- S5 · GOBIERNO -->
-<section class="slide" id="s5" style="background:var(--navy);">
-  <div class="bbva-stripe"></div>
-  <div class="inner">
-    <div class="chip sky fi">Gobierno y control</div>
-    <h2 class="fi">Roles claros.<br>Reglas compartidas.</h2>
-    <p class="lead fi">Cada área tiene una responsabilidad definida sobre el modelo. Las reglas de actualización y prioridad de fuentes son compartidas y automáticas.</p>
-
-    <div class="gov-row fi">
-      <div class="gov-card">
-        <div class="gov-card-top">
-          <div class="gov-circle" style="background:var(--bbva-teal-bg);">💼</div>
-          <div>
-            <div class="gov-role" style="color:var(--bbva-teal)">Finance</div>
-            <h4>Dueño del modelo</h4>
-          </div>
-        </div>
-        <p>Define quiénes son los clientes a segmentar y es responsable de la capa regulatoria, base del modelo.</p>
-      </div>
-      <div class="gov-card">
-        <div class="gov-card-top">
-          <div class="gov-circle" style="background:var(--bbva-orange-bg);">🔍</div>
-          <div>
-            <div class="gov-role" style="color:var(--bbva-orange)">Riesgos (GRM)</div>
-            <h4>Calidad y admisión</h4>
-          </div>
-        </div>
-        <p>Responsable de la calidad de la información de ventas y de la capa de segmentación para admisión de riesgos.</p>
-      </div>
-      <div class="gov-card">
-        <div class="gov-card-top">
-          <div class="gov-circle" style="background:var(--bbva-sky-bg);">🤝</div>
-          <div>
-            <div class="gov-role" style="color:var(--bbva-sky)">Negocio</div>
-            <h4>Visión comercial</h4>
-          </div>
-        </div>
-        <p>Responsable de la capa comercial, la gestión de grupos de empresas vinculadas y la asignación de bancas.</p>
-      </div>
-    </div>
-
-    <div class="fi">
-      <div class="hier-label">Jerarquía de fuentes de ventas — ante un conflicto, prevalece la de mayor prioridad</div>
-      <div class="hier-strip">
-        <div class="hier-item">
-          <div class="hier-num">1</div>
-          <div class="hier-name">Lince</div>
-          <div class="hier-sub">Fuente externa · máxima calidad</div>
-        </div>
-        <div class="hier-item">
-          <div class="hier-num">2</div>
-          <div class="hier-name">Balances internos</div>
-          <div class="hier-sub">Declaraciones contables del banco</div>
-        </div>
-        <div class="hier-item">
-          <div class="hier-num">3</div>
-          <div class="hier-name">Grilla comercial</div>
-          <div class="hier-sub">Información de gestores</div>
-        </div>
-        <div class="hier-item">
-          <div class="hier-num">4</div>
-          <div class="hier-name">Web PYME</div>
-          <div class="hier-sub">Solicitudes aprobadas</div>
-        </div>
-        <div class="hier-item dim">
-          <div class="hier-num">5</div>
-          <div class="hier-name">Sistema contable</div>
-          <div class="hier-sub">Fuente residual</div>
-        </div>
-        <div class="hier-item dim">
-          <div class="hier-num">6</div>
-          <div class="hier-name">Estimación BCU</div>
-          <div class="hier-sub">Último recurso</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="trigger-row fi">
-      <div class="trigger-card">
-        <div class="tc-label">Revisión anual</div>
-        <p>Una vez al año, las tres áreas validan los umbrales de ventas que definen cada segmento para ajustarlos a la realidad económica o estratégica del banco.</p>
-      </div>
-      <div class="trigger-card">
-        <div class="tc-label">Actualizaciones automáticas</div>
-        <p>Cuando llega nueva información de ventas de mayor calidad, cuando cambia la situación de un cliente o tras la actualización mensual del Banco Central, el segmento se recalcula de forma automática.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- S6 · CIERRE -->
-<section class="slide" id="s6" style="background:var(--navy2);">
+<!-- S5 · CIERRE -->
+<section class="slide" id="s5" style="background:var(--navy2);">
   <div class="bbva-stripe"></div>
   <div class="glow blue" style="width:750px;height:750px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
   <div class="inner">
     <div class="chip sky fi">Resumen ejecutivo</div>
     <h2 class="fi">De silos a un dato <em>único y confiable</em></h2>
 
-    <div class="kpi-row fi">
-      <div class="kpi"><div class="kpi-val">3</div><div class="kpi-lbl">Áreas integradas en un solo modelo</div></div>
-      <div class="kpi"><div class="kpi-val">6</div><div class="kpi-lbl">Fuentes de ventas con prioridad definida</div></div>
-      <div class="kpi"><div class="kpi-val">3</div><div class="kpi-lbl">Capas de segmento coherentes entre sí</div></div>
-      <div class="kpi"><div class="kpi-val" style="font-size:42px;">Diaria</div><div class="kpi-lbl">Periodicidad de actualización automática</div></div>
-    </div>
-
     <div class="fi" style="margin-top:28px;">
       <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:14px;">Hallazgos sobre la base procesada</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div style="background:var(--navy);border:1px solid rgba(224,82,82,.25);border-left:3px solid var(--red);border-radius:10px;padding:24px 28px;display:flex;align-items:center;gap:24px;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--red);line-height:1;flex-shrink:0;">9%</div>
+        <div style="background:var(--navy);border:1px solid rgba(46,194,126,.25);border-left:3px solid var(--green);border-radius:10px;padding:24px 28px;display:flex;align-items:center;gap:24px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--green);line-height:1;flex-shrink:0;">9%</div>
           <div>
             <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--t1);">Bancas desviadas de su segmento</div>
             <div style="font-size:13px;color:var(--t2);line-height:1.6;">Clientes atendidos por una banca que no corresponde a su segmento real, según el nuevo modelo unificado.</div>
           </div>
         </div>
         <div style="background:var(--navy);border:1px solid rgba(46,194,126,.25);border-left:3px solid var(--green);border-radius:10px;padding:24px 28px;display:flex;align-items:center;gap:24px;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--green);line-height:1;flex-shrink:0;">1,5%</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--green);line-height:1;flex-shrink:0;">2%</div>
           <div>
             <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--t1);">Segmentos de Negocio desalineados</div>
             <div style="font-size:13px;color:var(--t2);line-height:1.6;">Clientes cuyo segmento comercial no es coherente con su segmento regulatorio ni de admisión de riesgos.</div>
@@ -767,7 +669,7 @@ window.addEventListener('scroll', () => {
   document.getElementById('prog-fill').style.width = (window.scrollY/h*100)+'%';
 });
 
-const ids = ['s1','s2','s3','s4','s5','s6'];
+const ids = ['s1','s2','s3','s4','s5'];
 const navBtns = document.querySelectorAll('.nav-btn');
 document.querySelectorAll('.slide').forEach(s =>
   new IntersectionObserver(entries => {
