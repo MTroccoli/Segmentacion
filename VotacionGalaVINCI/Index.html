@@ -266,6 +266,14 @@
       z-index: 1;
       filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
     }
+    .card-pais-imagen .card-img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
 
     .card-pais-body {
       padding: 20px;
@@ -872,7 +880,8 @@ var estado = {
   paisSeleccionado: null,
   adminPassword: '',
   refreshInterval: null,
-  emailAutoDetectado: false
+  emailAutoDetectado: false,
+  imagenes: {}
 };
 
 // =============================================
@@ -938,6 +947,13 @@ function escHtml(str) {
     })
     .withFailureHandler(function() {})
     .obtenerEmailUsuario();
+
+  google.script.run
+    .withSuccessHandler(function(mapping) {
+      estado.imagenes = mapping || {};
+    })
+    .withFailureHandler(function() {})
+    .obtenerImagenesPaises();
 })();
 
 // =============================================
@@ -999,9 +1015,14 @@ function cargarPaisesVotacion() {
     card.setAttribute('data-pais', pais);
     card.onclick = function() { seleccionarPais(this); };
 
+    var imgUrl = estado.imagenes[pais];
+    var imagenHtml = imgUrl
+      ? '<img class="card-img" src="' + escHtml(imgUrl) + '" alt="' + escHtml(pais) + '" loading="lazy">'
+      : '<span class="flag-emoji">' + info.emoji + '</span>';
+
     card.innerHTML =
       '<div class="card-pais-imagen" style="background: linear-gradient(135deg, ' + info.color1 + ', ' + info.color2 + ');">' +
-        '<span class="flag-emoji">' + info.emoji + '</span>' +
+        imagenHtml +
       '</div>' +
       '<div class="card-pais-body">' +
         '<div class="card-pais-nombre">' + escHtml(pais) + '</div>' +

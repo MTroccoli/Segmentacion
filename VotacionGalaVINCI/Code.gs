@@ -31,7 +31,8 @@ const CONFIG = {
   PESO_PONDERADO: 0.80,
   PESO_REGULAR: 0.20,
   CACHE_EMAILS_VOTARON: 300,
-  CACHE_RESULTADOS: 15
+  CACHE_RESULTADOS: 15,
+  SLIDES_ID: '1Mkj7SD3SOSkDjyAjGjIIJob-TqvHu9rrrAAjsBvGNXI'
 };
 
 const PAISES = [
@@ -50,7 +51,8 @@ const PAISES = [
 
 const HOJAS = {
   VOTOS: 'Votos',
-  LISTA_PONDERADA: 'Lista Ponderada'
+  LISTA_PONDERADA: 'Lista Ponderada',
+  IMAGENES: 'Imagenes'
 };
 
 // =============================================
@@ -387,4 +389,99 @@ function resetearVotos(password) {
   }
   invalidarCacheVotos_();
   return { ok: true };
+}
+
+// =============================================
+// IMAGENES DESDE GOOGLE SLIDES
+// =============================================
+
+/**
+ * Ejecutar UNA VEZ (o cuando cambien las slides).
+ * Exporta cada slide como PNG a una carpeta de Drive
+ * y guarda el mapeo Pais -> URL en la hoja "Imagenes".
+ *
+ * PREREQUISITO: Habilitar el servicio avanzado de Slides:
+ *   En el editor de Apps Script > Servicios (+) > Google Slides API > Agregar
+ *
+ * Despues de ejecutar, revisar la hoja "Imagenes" y
+ * corregir el mapeo si el orden de slides no coincide con PAISES.
+ */
+function exportarImagenesSlides() {
+  var presId = CONFIG.SLIDES_ID;
+  var token = ScriptApp.getOAuthToken();
+
+  var presUrl = 'https://slides.googleapis.com/v1/presentations/' + presId;
+  var presResp = UrlFetchApp.fetch(presUrl, {
+    headers: { 'Authorization': 'Bearer ' + token },
+    muteHttpExceptions: true
+  });
+
+  if (presResp.getResponseCode() !== 200) {
+    Logger.log('Error accediendo a la presentacion: ' + presResp.getContentText());
+    return { ok: false, msg: 'No se pudo acceder a la presentacion. Verifica el ID y que tengas permisos de lectura.' };
+  }
+
+  var presData = JSON.parse(presResp.getContentText());
+  var slides = presData.slides;
+
+  var folders = DriveApp.getFoldersByName('Gala VINCI - Imagenes');
+  var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('Gala VINCI - Imagenes');
+  folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  var ss = obtenerHoja_();
+  var sheet = ss.getSheetByName(HOJAS.IMAGENES);
+  if (!sheet) {
+    sheet = ss.insertSheet(HOJAS.IMAGENES);
+  } else {
+    sheet.clear();
+  }
+  sheet.appendRow(['Pais', 'ImagenURL']);
+  sheet.getRange('A1:B1').setFontWeight('bold');
+
+  var total = 0;
+  for (var i = 0; i < slides.length; i++) {
+    var pageId = slides[i].objectId;
+
+    var thumbUrl = 'https://slides.googleapis.com/v1/presentations/' + presId +
+                   '/pages/' + pageId + '/thumbnail?thumbnailProperties.thumbnailSize=MEDIUM';
+    var thumbResp = UrlFetchApp.fetch(thumbUrl, {
+      headers: { 'Authorization': 'Bearer ' + token },
+      muteHttpExceptions: true
+    });
+
+    if (thumbResp.getResponseCode() !== 200) continue;
+
+    var thumbData = JSON.parse(thumbResp.getContentText());
+    var imageBlob = UrlFetchApp.fetch(thumbData.contentUrl).getBlob();
+
+    var fileName = 'slide_' + (i + 1) + '.png';
+    imageBlob.setName(fileName);
+
+    var existing = folder.getFilesByName(fileName);
+    while (existing.hasNext()) existing.next().setTrashed(true);
+
+    var file = folder.createFile(imageBlob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    var pais = i < PAISES.length ? PAISES[i] : 'Slide ' + (i + 1);
+    var url = 'https://drive.google.com/uc?export=view&id=' + file.getId();
+
+    sheet.appendRow([pais, url]);
+    total++;
+  }
+
+  Logger.log('Exportadas ' + total + ' imagenes.');
+  return { ok: true, total: total, msg: 'Revisa la hoja "Imagenes" y corrige el mapeo Pais si es necesario.' };
+}
+
+function obtenerImagenesPaises() {
+  var sheet = obtenerHoja_().getSheetByName(HOJAS.IMAGENES);
+  if (!sheet || sheet.getLastRow() <= 1) return {};
+
+  var data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
+  var mapping = {};
+  data.forEach(function(row) {
+    if (row[0] && row[1]) mapping[row[0]] = row[1];
+  });
+  return mapping;
 }
