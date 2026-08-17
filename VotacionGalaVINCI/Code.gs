@@ -38,6 +38,7 @@ const PAISES = [
   'Mexico',
   'Peru',
   'Turquia',
+  'Uruguay',
   'Venezuela'
 ];
 
@@ -215,7 +216,7 @@ function registrarVoto(email, paisVotado, paisVotante) {
       paisVotado: paisVotado
     };
   } catch(e) {
-    return { ok: false, msg: 'Hubo un error, por favor reintenta en unos segundos.' };
+    return { ok: false, msg: 'Error: ' + (e.message || 'Hubo un error, por favor reintenta en unos segundos.') };
   } finally {
     lock.releaseLock();
   }

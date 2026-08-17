@@ -858,6 +858,7 @@ var PAISES_INFO = {
   'Mexico':     { emoji: '🇲🇽', color1: '#006847', color2: '#CE1126' },
   'Peru':       { emoji: '🇵🇪', color1: '#D91023', color2: '#FFFFFF' },
   'Turquia':    { emoji: '🇹🇷', color1: '#E30A17', color2: '#FFFFFF' },
+  'Uruguay':    { emoji: '🇺🇾', color1: '#001489', color2: '#FCD116' },
   'Venezuela':  { emoji: '🇻🇪', color1: '#CF142B', color2: '#00247D' }
 };
 
@@ -913,7 +914,7 @@ function escHtml(str) {
   paises.forEach(function(p) {
     var opt = document.createElement('option');
     opt.value = p;
-    opt.textContent = PAISES_INFO[p].emoji + '  ' + p;
+    opt.textContent = p;
     sel.appendChild(opt);
   });
 
