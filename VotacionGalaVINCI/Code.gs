@@ -31,7 +31,6 @@ const CONFIG = {
   PESO_PONDERADO: 0.80,
   PESO_REGULAR: 0.20,
   CACHE_EMAILS_VOTARON: 300,
-  CACHE_LISTA_PONDERADA: 600,
   CACHE_RESULTADOS: 15
 };
 
@@ -149,24 +148,12 @@ function obtenerEmailsVotaron_() {
 }
 
 function obtenerSetPonderados_() {
-  var cache = CacheService.getScriptCache();
-  var cached = cache.get('set_ponderados');
-  if (cached) {
-    try { return JSON.parse(cached); } catch(e) {}
-  }
-
   var sheet = obtenerHoja_().getSheetByName(HOJAS.LISTA_PONDERADA);
-  if (!sheet || sheet.getLastRow() <= 1) {
-    cache.put('set_ponderados', '[]', CONFIG.CACHE_LISTA_PONDERADA);
-    return [];
-  }
+  if (!sheet || sheet.getLastRow() <= 1) return [];
 
-  var emails = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues()
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues()
     .map(function(r) { return r[0] ? r[0].toString().toLowerCase() : ''; })
     .filter(function(e) { return e; });
-
-  cache.put('set_ponderados', JSON.stringify(emails), CONFIG.CACHE_LISTA_PONDERADA);
-  return emails;
 }
 
 function invalidarCacheVotos_() {
@@ -174,9 +161,8 @@ function invalidarCacheVotos_() {
   cache.removeAll(['emails_votaron', 'resultados']);
 }
 
-function invalidarCachePonderados_() {
-  var cache = CacheService.getScriptCache();
-  cache.removeAll(['set_ponderados', 'resultados']);
+function invalidarCacheResultados_() {
+  CacheService.getScriptCache().remove('resultados');
 }
 
 // =============================================
@@ -375,7 +361,7 @@ function agregarUsuarioPonderado(password, datos) {
   obtenerHoja_().getSheetByName(HOJAS.LISTA_PONDERADA).appendRow([
     datos.email, datos.nombre || '', datos.pais || '', datos.cargo || ''
   ]);
-  invalidarCachePonderados_();
+  invalidarCacheResultados_();
   return { ok: true };
 }
 
@@ -386,7 +372,7 @@ function eliminarUsuarioPonderado(password, email) {
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] && data[i][0].toString().toLowerCase() === email.toLowerCase()) {
       sheet.deleteRow(i + 1);
-      invalidarCachePonderados_();
+      invalidarCacheResultados_();
       return { ok: true };
     }
   }
