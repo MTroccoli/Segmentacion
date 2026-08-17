@@ -400,14 +400,19 @@ function resetearVotos(password) {
  * Exporta cada slide como PNG a una carpeta de Drive
  * y guarda el mapeo Pais -> URL en la hoja "Imagenes".
  *
- * PREREQUISITO: Habilitar el servicio avanzado de Slides:
- *   En el editor de Apps Script > Servicios (+) > Google Slides API > Agregar
+ * PREREQUISITO: En el editor de Apps Script:
+ *   1. Servicios (+) > Google Slides API > Agregar
+ *   2. Esto habilita automaticamente la API en el Cloud Project
  *
  * Despues de ejecutar, revisar la hoja "Imagenes" y
  * corregir el mapeo si el orden de slides no coincide con PAISES.
  */
 function exportarImagenesSlides() {
   var presId = CONFIG.SLIDES_ID;
+  if (!presId) {
+    return { ok: false, msg: 'Configura SLIDES_ID en CONFIG.' };
+  }
+
   var token = ScriptApp.getOAuthToken();
 
   var presUrl = 'https://slides.googleapis.com/v1/presentations/' + presId;
@@ -417,16 +422,28 @@ function exportarImagenesSlides() {
   });
 
   if (presResp.getResponseCode() !== 200) {
-    Logger.log('Error accediendo a la presentacion: ' + presResp.getContentText());
-    return { ok: false, msg: 'No se pudo acceder a la presentacion. Verifica el ID y que tengas permisos de lectura.' };
+    var errorMsg = presResp.getContentText();
+    Logger.log('Error accediendo a la presentacion: ' + errorMsg);
+    if (errorMsg.indexOf('not enabled') !== -1 || errorMsg.indexOf('accessNotConfigured') !== -1) {
+      return { ok: false, msg: 'La API de Slides no esta habilitada. En el editor de Apps Script: Servicios (+) > Google Slides API > Agregar.' };
+    }
+    return { ok: false, msg: 'No se pudo acceder a la presentacion. Verifica el ID y permisos. Codigo: ' + presResp.getResponseCode() };
   }
 
   var presData = JSON.parse(presResp.getContentText());
   var slides = presData.slides;
+  if (!slides || slides.length === 0) {
+    return { ok: false, msg: 'La presentacion no tiene slides.' };
+  }
 
   var folders = DriveApp.getFoldersByName('Gala VINCI - Imagenes');
   var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('Gala VINCI - Imagenes');
-  folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  try {
+    folder.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch(e) {
+    Logger.log('Compartir carpeta automaticamente no disponible: ' + e.message);
+  }
 
   var ss = obtenerHoja_();
   var sheet = ss.getSheetByName(HOJAS.IMAGENES);
@@ -439,39 +456,62 @@ function exportarImagenesSlides() {
   sheet.getRange('A1:B1').setFontWeight('bold');
 
   var total = 0;
+  var errores = [];
+
   for (var i = 0; i < slides.length; i++) {
     var pageId = slides[i].objectId;
 
-    var thumbUrl = 'https://slides.googleapis.com/v1/presentations/' + presId +
-                   '/pages/' + pageId + '/thumbnail?thumbnailProperties.thumbnailSize=MEDIUM';
-    var thumbResp = UrlFetchApp.fetch(thumbUrl, {
-      headers: { 'Authorization': 'Bearer ' + token },
-      muteHttpExceptions: true
-    });
+    try {
+      var thumbUrl = 'https://slides.googleapis.com/v1/presentations/' + presId +
+                     '/pages/' + pageId + '/thumbnail?thumbnailProperties.thumbnailSize=MEDIUM';
+      var thumbResp = UrlFetchApp.fetch(thumbUrl, {
+        headers: { 'Authorization': 'Bearer ' + token },
+        muteHttpExceptions: true
+      });
 
-    if (thumbResp.getResponseCode() !== 200) continue;
+      if (thumbResp.getResponseCode() !== 200) {
+        errores.push('Slide ' + (i + 1) + ': HTTP ' + thumbResp.getResponseCode());
+        continue;
+      }
 
-    var thumbData = JSON.parse(thumbResp.getContentText());
-    var imageBlob = UrlFetchApp.fetch(thumbData.contentUrl).getBlob();
+      var thumbData = JSON.parse(thumbResp.getContentText());
+      var imageResp = UrlFetchApp.fetch(thumbData.contentUrl, { muteHttpExceptions: true });
 
-    var fileName = 'slide_' + (i + 1) + '.png';
-    imageBlob.setName(fileName);
+      if (imageResp.getResponseCode() !== 200) {
+        errores.push('Slide ' + (i + 1) + ': Error descargando imagen');
+        continue;
+      }
 
-    var existing = folder.getFilesByName(fileName);
-    while (existing.hasNext()) existing.next().setTrashed(true);
+      var fileName = 'slide_' + (i + 1) + '.png';
+      var imageBlob = imageResp.getBlob().setName(fileName);
 
-    var file = folder.createFile(imageBlob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      var existing = folder.getFilesByName(fileName);
+      while (existing.hasNext()) existing.next().setTrashed(true);
 
-    var pais = i < PAISES.length ? PAISES[i] : 'Slide ' + (i + 1);
-    var url = 'https://drive.google.com/uc?export=view&id=' + file.getId();
+      var file = folder.createFile(imageBlob);
 
-    sheet.appendRow([pais, url]);
-    total++;
+      try {
+        file.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch(e) {}
+
+      var pais = i < PAISES.length ? PAISES[i] : 'Slide ' + (i + 1);
+      sheet.appendRow([pais, 'https://drive.google.com/uc?export=view&id=' + file.getId()]);
+      total++;
+
+    } catch(e) {
+      errores.push('Slide ' + (i + 1) + ': ' + e.message);
+    }
   }
 
-  Logger.log('Exportadas ' + total + ' imagenes.');
-  return { ok: true, total: total, msg: 'Revisa la hoja "Imagenes" y corrige el mapeo Pais si es necesario.' };
+  var msg = 'Exportadas ' + total + ' de ' + slides.length + ' imagenes.';
+  if (errores.length > 0) {
+    msg += ' Errores: ' + errores.join('; ');
+    Logger.log('Errores: ' + errores.join('; '));
+  }
+  msg += ' Revisa la hoja "Imagenes" y ajusta el mapeo Pais si es necesario.';
+
+  Logger.log(msg);
+  return { ok: total > 0, total: total, msg: msg };
 }
 
 function obtenerImagenesPaises() {
