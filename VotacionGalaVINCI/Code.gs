@@ -142,7 +142,7 @@ function obtenerEmailsVotaron_() {
   }
 
   var emails = sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).getValues()
-    .map(function(r) { return r[0] ? r[0].toString().toLowerCase() : ''; })
+    .map(function(r) { return r[0] ? r[0].toString().toLowerCase().trim() : ''; })
     .filter(function(e) { return e; });
 
   cache.put('emails_votaron', JSON.stringify(emails), CONFIG.CACHE_EMAILS_VOTARON);
@@ -154,7 +154,7 @@ function obtenerSetPonderados_() {
   if (!sheet || sheet.getLastRow() <= 1) return [];
 
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues()
-    .map(function(r) { return r[0] ? r[0].toString().toLowerCase() : ''; })
+    .map(function(r) { return r[0] ? r[0].toString().toLowerCase().trim() : ''; })
     .filter(function(e) { return e; });
 }
 

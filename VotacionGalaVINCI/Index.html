@@ -1041,13 +1041,13 @@ function seleccionarPais(card) {
   estado.paisSeleccionado = card.getAttribute('data-pais');
 
   document.getElementById('seleccionActual').innerHTML =
-    'Seleccionaste: <strong>' + escHtml(estado.paisSeleccionado) + '</strong> ' + PAISES_INFO[estado.paisSeleccionado].emoji;
+    'Seleccionaste: <strong>' + escHtml(estado.paisSeleccionado) + '</strong>';
   document.getElementById('btnVotar').disabled = false;
 }
 
 function abrirModalVoto() {
   if (!estado.paisSeleccionado) return;
-  document.getElementById('modalPaisVoto').textContent = estado.paisSeleccionado + ' ' + PAISES_INFO[estado.paisSeleccionado].emoji;
+  document.getElementById('modalPaisVoto').textContent = estado.paisSeleccionado;
   document.getElementById('modalConfirmar').classList.add('show');
 }
 
@@ -1066,7 +1066,7 @@ function confirmarVoto() {
         alert(res.msg);
         return;
       }
-      document.getElementById('confirmPais').textContent = res.paisVotado + ' ' + PAISES_INFO[res.paisVotado].emoji;
+      document.getElementById('confirmPais').textContent = res.paisVotado;
       mostrarVista('vistaConfirmacion');
     })
     .withFailureHandler(function() {
@@ -1149,12 +1149,11 @@ function renderizarDashboard(res) {
   var maxScore = Math.max.apply(null, res.ranking.map(function(r) { return r.scoreTotal; }).concat([1]));
   var barHtml = '';
   res.ranking.forEach(function(r) {
-    var info = PAISES_INFO[r.pais] || { emoji: '', color1: '#004481', color2: '#1973B8' };
     var wPct = maxScore > 0 ? (r.scorePond / maxScore * 100) : 0;
     var rPct = maxScore > 0 ? (r.scoreReg / maxScore * 100) : 0;
     barHtml +=
       '<div class="bar-row">' +
-        '<div class="bar-label">' + info.emoji + ' ' + escHtml(r.pais) + '</div>' +
+        '<div class="bar-label">' + escHtml(r.pais) + '</div>' +
         '<div class="bar-track">' +
           '<div style="display:flex;height:100%;">' +
             '<div class="bar-fill pond" style="width:' + wPct + '%;">' + '</div>' +
@@ -1168,11 +1167,10 @@ function renderizarDashboard(res) {
 
   var tbody = '';
   res.ranking.forEach(function(r, i) {
-    var info = PAISES_INFO[r.pais] || { emoji: '' };
     tbody +=
       '<tr>' +
         '<td class="rank-num">' + (i + 1) + '</td>' +
-        '<td>' + info.emoji + ' ' + escHtml(r.pais) + '</td>' +
+        '<td>' + escHtml(r.pais) + '</td>' +
         '<td>' + r.votosPond + '</td>' +
         '<td>' + r.votosReg + '</td>' +
         '<td><strong>' + r.totalVotos + '</strong></td>' +
