@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bbva-dark: #072146;
+      --bbva-blue: #004481;
+      --bbva-medium: #1973B8;
+      --bbva-light: #49A5E6;
+      --bbva-aqua: #2DCCCD;
+      --bbva-white: #FFFFFF;
+      --bbva-bg: #F4F4F4;
+      --bbva-gray: #666666;
+      --bbva-light-gray: #D3D3D3;
+      --bbva-success: #48BB78;
+      --bbva-error: #E53E3E;
+      --bbva-gold: #F8CD51;
+      --shadow: 0 2px 8px rgba(7,33,70,0.10);
+      --shadow-lg: 0 8px 24px rgba(7,33,70,0.15);
+      --radius: 8px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bbva-bg);
+      color: var(--bbva-dark);
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--bbva-dark) 0%, var(--bbva-blue) 100%);
+      color: var(--bbva-white);
+      padding: 20px 24px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-lg);
+    }
+    .header-logo {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      margin-bottom: 4px;
+    }
+    .header-sub {
+      font-size: 13px;
+      opacity: 0.85;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .header-user {
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      opacity: 0.8;
+      text-align: right;
+    }
+    .header-user strong { display: block; font-size: 13px; opacity: 1; }
+
+    .view { display: none; animation: fadeIn 0.4s ease; }
+    .view.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+
+    /* ===== PANTALLA REGISTRO ===== */
+    .registro-card {
+      background: var(--bbva-white);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      max-width: 480px;
+      margin: 60px auto;
+      padding: 48px 40px;
+      text-align: center;
+    }
+    .registro-card h2 {
+      color: var(--bbva-blue);
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .registro-card p {
+      color: var(--bbva-gray);
+      font-size: 14px;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+    .form-group {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bbva-dark);
+      margin-bottom: 6px;
+    }
+    .form-group select,
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--bbva-light-gray);
+      border-radius: var(--radius);
+      font-size: 15px;
+      transition: border-color 0.2s;
+      outline: none;
+      font-family: inherit;
+    }
+    .form-group select:focus,
+    .form-group input:focus {
+      border-color: var(--bbva-medium);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 40px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .btn-primary {
+      background: var(--bbva-blue);
+      color: var(--bbva-white);
+    }
+    .btn-primary:hover { background: var(--bbva-medium); }
+    .btn-primary:disabled {
+      background: var(--bbva-light-gray);
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--bbva-blue);
+      border: 2px solid var(--bbva-blue);
+    }
+    .btn-secondary:hover { background: rgba(0,68,129,0.05); }
+    .btn-danger {
+      background: var(--bbva-error);
+      color: var(--bbva-white);
+    }
+    .btn-danger:hover { background: #c53030; }
+    .btn-sm { padding: 8px 16px; font-size: 12px; }
+    .btn-block { width: 100%; margin-top: 12px; }
+
+    .error-msg {
+      background: #FFF5F5;
+      color: var(--bbva-error);
+      border: 1px solid #FED7D7;
+      border-radius: var(--radius);
+      padding: 12px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    .link-admin {
+      display: block;
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--bbva-gray);
+      cursor: pointer;
+    }
+    .link-admin:hover { color: var(--bbva-blue); }
+
+    /* ===== PANTALLA VOTACION ===== */
+    .votacion-titulo {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .votacion-titulo h2 {
+      color: var(--bbva-blue);
+      font-size: 26px;
+    }
+    .votacion-instruccion {
+      text-align: center;
+      color: var(--bbva-gray);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .grid-iniciativas {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .card-iniciativa {
+      background: var(--bbva-white);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 3px solid transparent;
+      position: relative;
+    }
+    .card-iniciativa:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .card-iniciativa.selected {
+      border-color: var(--bbva-aqua);
+      box-shadow: 0 0 0 3px rgba(45,204,205,0.3), var(--shadow-lg);
+    }
+    .card-iniciativa.selected::after {
+      content: '\2713';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--bbva-aqua);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      z-index: 2;
+    }
+
+    .card-imagen {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, var(--bbva-dark), var(--bbva-blue));
+    }
+    .card-imagen-placeholder {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, var(--bbva-dark) 0%, var(--bbva-blue) 50%, var(--bbva-medium) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bbva-white);
+      font-size: 48px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .card-body { padding: 20px; }
+    .card-pais {
+      display: inline-block;
+      background: var(--bbva-blue);
+      color: var(--bbva-white);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .card-nombre {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--bbva-dark);
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: var(--bbva-gray);
+      line-height: 1.5;
+    }
+
+    .votacion-footer {
+      text-align: center;
+      padding: 24px 0 48px;
+    }
+    .seleccion-actual {
+      font-size: 14px;
+      color: var(--bbva-gray);
+      margin-bottom: 16px;
+    }
+    .seleccion-actual strong { color: var(--bbva-blue); }
+
+    /* ===== PANTALLA CONFIRMACION ===== */
+    .confirmacion-card {
+      background: var(--bbva-white);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      max-width: 520px;
+      margin: 60px auto;
+      padding: 48px 40px;
+      text-align: center;
+    }
+    .check-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--bbva-success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 40px;
+      color: var(--bbva-white);
+      animation: scaleIn 0.4s ease;
+    }
+    @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+    .confirmacion-card h2 {
+      color: var(--bbva-success);
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    .confirmacion-card .voto-info {
+      background: var(--bbva-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin: 20px 0;
+      font-size: 15px;
+    }
+    .confirmacion-card .voto-info strong { color: var(--bbva-blue); }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(7,33,70,0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--bbva-white);
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 440px;
+      width: 90%;
+      text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+    .modal h3 {
+      color: var(--bbva-dark);
+      margin-bottom: 12px;
+      font-size: 20px;
+    }
+    .modal p {
+      color: var(--bbva-gray);
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+
+    /* ===== ADMIN ===== */
+    .admin-login {
+      max-width: 400px;
+      margin: 60px auto;
+      background: var(--bbva-white);
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+    .admin-login h2 {
+      color: var(--bbva-blue);
+      margin-bottom: 24px;
+    }
+
+    .admin-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--bbva-light-gray);
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .admin-tab {
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bbva-gray);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .admin-tab:hover { color: var(--bbva-blue); }
+    .admin-tab.active {
+      color: var(--bbva-blue);
+      border-bottom-color: var(--bbva-blue);
+    }
+
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--bbva-white);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--bbva-blue);
+    }
+    .stat-card .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--bbva-blue);
+    }
+    .stat-card .stat-label {
+      font-size: 12px;
+      color: var(--bbva-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .ranking-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bbva-white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .ranking-table th {
+      background: var(--bbva-dark);
+      color: var(--bbva-white);
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .ranking-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--bbva-bg);
+      font-size: 14px;
+    }
+    .ranking-table tr:hover td { background: #f8f9fa; }
+    .ranking-table .rank-num {
+      font-weight: 700;
+      color: var(--bbva-blue);
+      font-size: 18px;
+    }
+
+    .bar-chart {
+      background: var(--bbva-white);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .bar-label {
+      width: 160px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: right;
+      flex-shrink: 0;
+      color: var(--bbva-dark);
+    }
+    .bar-track {
+      flex: 1;
+      height: 32px;
+      background: var(--bbva-bg);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: fit-content;
+    }
+    .bar-fill.pond {
+      background: linear-gradient(90deg, var(--bbva-blue), var(--bbva-medium));
+    }
+    .bar-fill.reg {
+      background: var(--bbva-aqua);
+    }
+    .bar-score {
+      width: 60px;
+      text-align: right;
+      font-weight: 700;
+      color: var(--bbva-blue);
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .legend {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 12px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 3px;
+    }
+
+    .auto-refresh {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--bbva-gray);
+    }
+    .auto-refresh input[type="checkbox"] { accent-color: var(--bbva-blue); }
+    .last-update { font-size: 12px; color: var(--bbva-gray); opacity: 0.7; }
+
+    .table-scroll { overflow-x: auto; }
+
+    .admin-form {
+      background: var(--bbva-white);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .admin-form h3 {
+      color: var(--bbva-blue);
+      margin-bottom: 16px;
+      font-size: 16px;
+    }
+    .admin-form .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .admin-form input,
+    .admin-form select,
+    .admin-form textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--bbva-light-gray);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .admin-form textarea { resize: vertical; min-height: 60px; }
+    .admin-form .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: block;
+      color: var(--bbva-dark);
+    }
+
+    .admin-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bbva-white);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+    }
+    .admin-list-item .item-info { flex: 1; }
+    .admin-list-item .item-email { font-weight: 600; color: var(--bbva-dark); }
+    .admin-list-item .item-meta { font-size: 12px; color: var(--bbva-gray); }
+
+    .img-upload-area {
+      border: 2px dashed var(--bbva-light-gray);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 12px;
+    }
+    .img-upload-area:hover { border-color: var(--bbva-medium); }
+    .img-upload-area .upload-icon { font-size: 32px; margin-bottom: 8px; }
+    .img-upload-area p { font-size: 13px; color: var(--bbva-gray); }
+    .img-preview {
+      max-width: 200px;
+      max-height: 120px;
+      border-radius: 6px;
+      margin-top: 8px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 3px solid var(--bbva-light-gray);
+      border-top-color: var(--bbva-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.8);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .loading-overlay.show { display: flex; }
+    .loading-overlay .spinner { width: 40px; height: 40px; border-width: 4px; }
+    .loading-overlay p { margin-top: 16px; color: var(--bbva-blue); font-weight: 600; }
+
+    .badge-pond {
+      display: inline-block;
+      background: var(--bbva-gold);
+      color: var(--bbva-dark);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .header-user { display: none; }
+      .header { padding: 16px; }
+      .header-logo { font-size: 22px; }
+      .registro-card, .admin-login, .confirmacion-card { margin: 24px 12px; padding: 28px 20px; }
+      .grid-iniciativas { grid-template-columns: 1fr; }
+      .container { padding: 20px 12px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .bar-label { width: 80px; font-size: 11px; }
+      .admin-form .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">GALA VINCI</div>
+  <div class="header-sub">Votacion Global - Septiembre 2026</div>
+  <div class="header-user" id="headerUser" style="display:none;">
+    <strong id="headerEmail"></strong>
+    <span id="headerPais"></span>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <p>Procesando...</p>
+</div>
+
+<!-- MODAL CONFIRMAR VOTO -->
+<div class="modal-overlay" id="modalConfirmar">
+  <div class="modal">
+    <h3>Confirmar tu voto</h3>
+    <p>Vas a votar por <strong id="modalIniciativa"></strong> de <strong id="modalPais"></strong>. Esta accion no se puede deshacer.</p>
+    <div class="modal-buttons">
+      <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarVoto()">Confirmar voto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VISTA 1: REGISTRO ============ -->
+<div class="view active" id="vistaRegistro">
+  <div class="registro-card">
+    <h2>Bienvenido a Gala VINCI</h2>
+    <p>Selecciona tu pais e ingresa tu email corporativo para participar en la votacion de iniciativas de innovacion.</p>
+
+    <div class="error-msg" id="errorRegistro"></div>
+
+    <div class="form-group">
+      <label for="selectPais">Tu pais</label>
+      <select id="selectPais">
+        <option value="">Selecciona un pais...</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="inputEmail">Email corporativo</label>
+      <input type="email" id="inputEmail" placeholder="nombre@bbva.com">
+    </div>
+
+    <button class="btn btn-primary btn-block" id="btnIngresar" onclick="ingresar()">Ingresar</button>
+
+    <span class="link-admin" onclick="mostrarAdmin()">Panel de administracion</span>
+  </div>
+</div>
+
+<!-- ============ VISTA 2: VOTACION ============ -->
+<div class="view" id="vistaVotacion">
+  <div class="container">
+    <div class="votacion-titulo">
+      <h2>Vota por la mejor iniciativa</h2>
+    </div>
+    <p class="votacion-instruccion">Selecciona la propuesta de innovacion que consideres mas impactante. No puedes votar por la iniciativa de tu propio pais.</p>
+
+    <div class="grid-iniciativas" id="gridIniciativas"></div>
+
+    <div class="votacion-footer">
+      <div class="seleccion-actual" id="seleccionActual">Toca una iniciativa para seleccionarla</div>
+      <button class="btn btn-primary" id="btnVotar" onclick="abrirModalVoto()" disabled>Votar por esta iniciativa</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VISTA 3: CONFIRMACION ============ -->
+<div class="view" id="vistaConfirmacion">
+  <div class="confirmacion-card">
+    <div class="check-icon">&#10003;</div>
+    <h2>Gracias por tu voto!</h2>
+    <p>Tu voto ha sido registrado exitosamente.</p>
+    <div class="voto-info">
+      Votaste por <strong id="confirmNombre"></strong><br>
+      <span id="confirmPais" style="color:var(--bbva-gray);font-size:13px;"></span>
+    </div>
+    <p style="font-size:13px;color:var(--bbva-gray);margin-top:16px;">Los resultados se anunciaran en la Gala VINCI.</p>
+  </div>
+</div>
+
+<!-- ============ VISTA 4: ADMIN LOGIN ============ -->
+<div class="view" id="vistaAdminLogin">
+  <div class="admin-login">
+    <h2>Panel Admin</h2>
+    <div class="error-msg" id="errorAdmin"></div>
+    <div class="form-group">
+      <label for="inputAdminPass">Contrasena de administrador</label>
+      <input type="password" id="inputAdminPass" placeholder="Ingresa la contrasena">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="loginAdmin()">Acceder</button>
+    <span class="link-admin" onclick="volverRegistro()" style="margin-top:16px;">Volver al inicio</span>
+  </div>
+</div>
+
+<!-- ============ VISTA 5: ADMIN PANEL ============ -->
+<div class="view" id="vistaAdmin">
+  <div class="container">
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="cambiarTabAdmin('dashboard')">Dashboard</div>
+      <div class="admin-tab" onclick="cambiarTabAdmin('ponderados')">Votos Ponderados</div>
+      <div class="admin-tab" onclick="cambiarTabAdmin('iniciativas')">Iniciativas</div>
+      <div class="admin-tab" onclick="cambiarTabAdmin('listaPond')">Lista Ponderada</div>
+    </div>
+
+    <!-- TAB: Dashboard -->
+    <div class="admin-section active" id="secDashboard">
+      <div class="auto-refresh">
+        <label><input type="checkbox" id="chkAutoRefresh" checked onchange="toggleAutoRefresh()"> Auto-refrescar</label>
+        <span class="last-update" id="lastUpdate"></span>
+      </div>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <h3 style="color:var(--bbva-blue);margin-bottom:16px;">Ranking de Iniciativas</h3>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(90deg,var(--bbva-blue),var(--bbva-medium));"></div> Ponderado (80%)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--bbva-aqua);"></div> Regular (20%)</div>
+      </div>
+      <div class="bar-chart" id="barChart"></div>
+
+      <div class="table-scroll">
+        <table class="ranking-table" id="tablaRanking">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Pais</th>
+              <th>Iniciativa</th>
+              <th>Votos Pond.</th>
+              <th>Votos Reg.</th>
+              <th>Total</th>
+              <th>Score Pond.</th>
+              <th>Score Reg.</th>
+              <th>Score Total</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyRanking"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: Votos Ponderados -->
+    <div class="admin-section" id="secPonderados">
+      <h3 style="color:var(--bbva-blue);margin-bottom:16px;">Detalle de votos de la lista ponderada</h3>
+      <div class="table-scroll">
+        <table class="ranking-table" id="tablaPonderados">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Pais Votante</th>
+              <th>Voto por Iniciativa</th>
+              <th>Pais Iniciativa</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPonderados"></tbody>
+        </table>
+      </div>
+      <p id="sinVotosPond" style="text-align:center;color:var(--bbva-gray);padding:32px;display:none;">Aun no hay votos de la lista ponderada.</p>
+    </div>
+
+    <!-- TAB: Gestionar Iniciativas -->
+    <div class="admin-section" id="secIniciativas">
+      <div class="admin-form">
+        <h3>Agregar nueva iniciativa</h3>
+        <div class="form-row">
+          <div><label class="form-label">Pais</label><input id="iniPais" placeholder="Ej: Espana"></div>
+          <div><label class="form-label">Nombre</label><input id="iniNombre" placeholder="Nombre de la iniciativa"></div>
+        </div>
+        <div class="form-row">
+          <div style="grid-column: 1/-1;">
+            <label class="form-label">Descripcion</label>
+            <textarea id="iniDesc" placeholder="Breve descripcion de la iniciativa"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label class="form-label">URL de imagen (opcional)</label>
+            <input id="iniImgUrl" placeholder="https://...">
+          </div>
+          <div>
+            <label class="form-label">O sube una imagen</label>
+            <div class="img-upload-area" onclick="document.getElementById('iniFileInput').click()">
+              <div class="upload-icon">&#128247;</div>
+              <p>Click para seleccionar imagen</p>
+              <img class="img-preview" id="iniImgPreview" style="display:none;">
+            </div>
+            <input type="file" id="iniFileInput" accept="image/*" style="display:none" onchange="previsualizarImagen(this)">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="adminAgregarIniciativa()">Agregar Iniciativa</button>
+      </div>
+
+      <h3 style="color:var(--bbva-blue);margin-bottom:12px;">Iniciativas actuales</h3>
+      <div id="listaIniciativasAdmin"></div>
+    </div>
+
+    <!-- TAB: Lista Ponderada -->
+    <div class="admin-section" id="secListaPond">
+      <div class="admin-form">
+        <h3>Agregar usuario a la lista ponderada</h3>
+        <div class="form-row">
+          <div><label class="form-label">Email</label><input id="pondEmail" placeholder="usuario@bbva.com"></div>
+          <div><label class="form-label">Nombre</label><input id="pondNombre" placeholder="Nombre completo"></div>
+        </div>
+        <div class="form-row">
+          <div><label class="form-label">Pais</label><input id="pondPais" placeholder="Pais"></div>
+          <div><label class="form-label">Cargo</label><input id="pondCargo" placeholder="Cargo"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="adminAgregarPonderado()">Agregar a la lista</button>
+      </div>
+
+      <h3 style="color:var(--bbva-blue);margin-bottom:12px;">Usuarios con voto ponderado</h3>
+      <div id="listaPondAdmin"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:40px;">
+      <button class="btn btn-danger btn-sm" onclick="confirmarReset()">Resetear todos los votos</button>
+      <button class="btn btn-secondary btn-sm" onclick="volverRegistro()" style="margin-left:12px;">Cerrar panel</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// =============================================
+// ESTADO GLOBAL
+// =============================================
+var estado = {
+  email: '',
+  pais: '',
+  esPonderado: false,
+  iniciativaSeleccionada: null,
+  adminPassword: '',
+  refreshInterval: null
+};
+
+// =============================================
+// UTILIDADES
+// =============================================
+function mostrarVista(id) {
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function mostrarLoading(show) {
+  document.getElementById('loading').classList.toggle('show', show);
+}
+
+function mostrarError(elementId, msg) {
+  var el = document.getElementById(elementId);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function ocultarError(elementId) {
+  document.getElementById(elementId).classList.remove('show');
+}
+
+// =============================================
+// REGISTRO
+// =============================================
+(function cargarPaises() {
+  google.script.run
+    .withSuccessHandler(function(paises) {
+      var sel = document.getElementById('selectPais');
+      paises.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        sel.appendChild(opt);
+      });
+    })
+    .withFailureHandler(function() {
+      var paises = ['Argentina','Chile','Colombia','Espana','Mexico','Peru','Turquia','Uruguay','Venezuela'];
+      var sel = document.getElementById('selectPais');
+      paises.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        sel.appendChild(opt);
+      });
+    })
+    .obtenerPaises();
+})();
+
+function ingresar() {
+  var pais = document.getElementById('selectPais').value;
+  var email = document.getElementById('inputEmail').value.trim();
+  ocultarError('errorRegistro');
+
+  if (!pais) { mostrarError('errorRegistro', 'Selecciona tu pais.'); return; }
+  if (!email) { mostrarError('errorRegistro', 'Ingresa tu email corporativo.'); return; }
+
+  mostrarLoading(true);
+  google.script.run
+    .withSuccessHandler(function(res) {
+      mostrarLoading(false);
+      if (!res.ok) {
+        mostrarError('errorRegistro', res.msg);
+        if (res.yaVoto) {
+          setTimeout(function() { mostrarVista('vistaConfirmacion'); }, 1500);
+        }
+        return;
+      }
+      estado.email = res.email;
+      estado.pais = res.pais;
+      estado.esPonderado = res.esPonderado;
+
+      document.getElementById('headerUser').style.display = 'block';
+      document.getElementById('headerEmail').textContent = res.email;
+      document.getElementById('headerPais').textContent = res.pais + (res.esPonderado ? ' (Voto ponderado)' : '');
+
+      cargarIniciativas();
+    })
+    .withFailureHandler(function(err) {
+      mostrarLoading(false);
+      mostrarError('errorRegistro', 'Error de conexion. Reintenta en unos segundos.');
+    })
+    .validarUsuario(email, pais);
+}
+
+// =============================================
+// VOTACION
+// =============================================
+function cargarIniciativas() {
+  mostrarLoading(true);
+  google.script.run
+    .withSuccessHandler(function(iniciativas) {
+      mostrarLoading(false);
+      renderizarIniciativas(iniciativas);
+      mostrarVista('vistaVotacion');
+    })
+    .withFailureHandler(function() {
+      mostrarLoading(false);
+      alert('Error al cargar iniciativas. Reintenta.');
+    })
+    .obtenerIniciativas(estado.pais);
+}
+
+function renderizarIniciativas(iniciativas) {
+  var grid = document.getElementById('gridIniciativas');
+  grid.innerHTML = '';
+
+  iniciativas.forEach(function(ini) {
+    var card = document.createElement('div');
+    card.className = 'card-iniciativa';
+    card.setAttribute('data-id', ini.id);
+    card.setAttribute('data-nombre', ini.nombre);
+    card.setAttribute('data-pais', ini.pais);
+    card.onclick = function() { seleccionarIniciativa(this); };
+
+    var imgHtml;
+    if (ini.imagenUrl && ini.imagenUrl.trim() !== '') {
+      imgHtml = '<img class="card-imagen" src="' + escHtml(ini.imagenUrl) + '" alt="' + escHtml(ini.nombre) + '" onerror="this.outerHTML=\'<div class=card-imagen-placeholder>' + escHtml(ini.pais.substring(0,3).toUpperCase()) + '</div>\'">';
+    } else {
+      imgHtml = '<div class="card-imagen-placeholder">' + escHtml(ini.pais.substring(0, 3).toUpperCase()) + '</div>';
+    }
+
+    card.innerHTML = imgHtml +
+      '<div class="card-body">' +
+        '<span class="card-pais">' + escHtml(ini.pais) + '</span>' +
+        '<div class="card-nombre">' + escHtml(ini.nombre) + '</div>' +
+        '<div class="card-desc">' + escHtml(ini.descripcion) + '</div>' +
+      '</div>';
+
+    grid.appendChild(card);
+  });
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function seleccionarIniciativa(card) {
+  document.querySelectorAll('.card-iniciativa').forEach(function(c) { c.classList.remove('selected'); });
+  card.classList.add('selected');
+
+  estado.iniciativaSeleccionada = {
+    id: card.getAttribute('data-id'),
+    nombre: card.getAttribute('data-nombre'),
+    pais: card.getAttribute('data-pais')
+  };
+
+  document.getElementById('seleccionActual').innerHTML =
+    'Seleccionaste: <strong>' + escHtml(estado.iniciativaSeleccionada.nombre) + '</strong> (' + escHtml(estado.iniciativaSeleccionada.pais) + ')';
+  document.getElementById('btnVotar').disabled = false;
+}
+
+function abrirModalVoto() {
+  if (!estado.iniciativaSeleccionada) return;
+  document.getElementById('modalIniciativa').textContent = estado.iniciativaSeleccionada.nombre;
+  document.getElementById('modalPais').textContent = estado.iniciativaSeleccionada.pais;
+  document.getElementById('modalConfirmar').classList.add('show');
+}
+
+function cerrarModal() {
+  document.getElementById('modalConfirmar').classList.remove('show');
+}
+
+function confirmarVoto() {
+  cerrarModal();
+  mostrarLoading(true);
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      mostrarLoading(false);
+      if (!res.ok) {
+        alert(res.msg);
+        return;
+      }
+      document.getElementById('confirmNombre').textContent = res.iniciativa.nombre;
+      document.getElementById('confirmPais').textContent = res.iniciativa.pais;
+      mostrarVista('vistaConfirmacion');
+    })
+    .withFailureHandler(function() {
+      mostrarLoading(false);
+      alert('Error al registrar el voto. Por favor reintenta.');
+    })
+    .registrarVoto(estado.email, estado.iniciativaSeleccionada.id, estado.pais);
+}
+
+// =============================================
+// ADMIN
+// =============================================
+function mostrarAdmin() {
+  mostrarVista('vistaAdminLogin');
+}
+
+function volverRegistro() {
+  if (estado.refreshInterval) {
+    clearInterval(estado.refreshInterval);
+    estado.refreshInterval = null;
+  }
+  estado.adminPassword = '';
+  document.getElementById('headerUser').style.display = 'none';
+  mostrarVista('vistaRegistro');
+}
+
+function loginAdmin() {
+  var pass = document.getElementById('inputAdminPass').value;
+  ocultarError('errorAdmin');
+
+  if (!pass) { mostrarError('errorAdmin', 'Ingresa la contrasena.'); return; }
+
+  mostrarLoading(true);
+  google.script.run
+    .withSuccessHandler(function(ok) {
+      mostrarLoading(false);
+      if (!ok) {
+        mostrarError('errorAdmin', 'Contrasena incorrecta.');
+        return;
+      }
+      estado.adminPassword = pass;
+      mostrarVista('vistaAdmin');
+      cargarDashboard();
+      cargarIniciativasAdmin();
+      cargarListaPonderadaAdmin();
+      iniciarAutoRefresh();
+    })
+    .withFailureHandler(function() {
+      mostrarLoading(false);
+      mostrarError('errorAdmin', 'Error de conexion.');
+    })
+    .loginAdmin(pass);
+}
+
+function cambiarTabAdmin(tab) {
+  document.querySelectorAll('.admin-tab').forEach(function(t, i) {
+    var tabs = ['dashboard','ponderados','iniciativas','listaPond'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.admin-section').forEach(function(s) { s.classList.remove('active'); });
+  var secciones = { dashboard:'secDashboard', ponderados:'secPonderados', iniciativas:'secIniciativas', listaPond:'secListaPond' };
+  document.getElementById(secciones[tab]).classList.add('active');
+}
+
+function cargarDashboard() {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res.ok) return;
+      renderizarDashboard(res);
+    })
+    .obtenerResultadosAdmin(estado.adminPassword);
+}
+
+function renderizarDashboard(res) {
+  // Stats
+  document.getElementById('statsGrid').innerHTML =
+    '<div class="stat-card"><div class="stat-value">' + res.stats.total + '</div><div class="stat-label">Votos totales</div></div>' +
+    '<div class="stat-card"><div class="stat-value">' + res.stats.ponderados + '</div><div class="stat-label">Votos ponderados</div></div>' +
+    '<div class="stat-card"><div class="stat-value">' + res.stats.regulares + '</div><div class="stat-label">Votos regulares</div></div>' +
+    '<div class="stat-card"><div class="stat-value">' + res.stats.iniciativas + '</div><div class="stat-label">Iniciativas activas</div></div>';
+
+  // Bar chart
+  var maxScore = Math.max.apply(null, res.ranking.map(function(r) { return r.scoreTotal; }).concat([1]));
+  var barHtml = '';
+  res.ranking.forEach(function(r) {
+    var wPct = maxScore > 0 ? (r.scorePond / maxScore * 100) : 0;
+    var rPct = maxScore > 0 ? (r.scoreReg / maxScore * 100) : 0;
+    barHtml +=
+      '<div class="bar-row">' +
+        '<div class="bar-label">' + escHtml(r.pais) + '<br><small style="font-weight:400;color:var(--bbva-gray);">' + escHtml(r.nombre) + '</small></div>' +
+        '<div class="bar-track">' +
+          '<div style="display:flex;height:100%;">' +
+            '<div class="bar-fill pond" style="width:' + wPct + '%;"></div>' +
+            '<div class="bar-fill reg" style="width:' + rPct + '%;"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="bar-score">' + r.scoreTotal + '</div>' +
+      '</div>';
+  });
+  document.getElementById('barChart').innerHTML = barHtml;
+
+  // Table
+  var tbody = '';
+  res.ranking.forEach(function(r, i) {
+    tbody +=
+      '<tr>' +
+        '<td class="rank-num">' + (i + 1) + '</td>' +
+        '<td>' + escHtml(r.pais) + '</td>' +
+        '<td>' + escHtml(r.nombre) + '</td>' +
+        '<td>' + r.votosPond + '</td>' +
+        '<td>' + r.votosReg + '</td>' +
+        '<td><strong>' + r.totalVotos + '</strong></td>' +
+        '<td>' + r.scorePond + '</td>' +
+        '<td>' + r.scoreReg + '</td>' +
+        '<td><strong>' + r.scoreTotal + '</strong></td>' +
+      '</tr>';
+  });
+  document.getElementById('tbodyRanking').innerHTML = tbody;
+
+  // Weighted votes detail
+  if (res.detallePond.length === 0) {
+    document.getElementById('tablaPonderados').style.display = 'none';
+    document.getElementById('sinVotosPond').style.display = 'block';
+  } else {
+    document.getElementById('tablaPonderados').style.display = '';
+    document.getElementById('sinVotosPond').style.display = 'none';
+    var tbodyP = '';
+    res.detallePond.forEach(function(v) {
+      tbodyP +=
+        '<tr>' +
+          '<td>' + escHtml(v.email) + '</td>' +
+          '<td>' + escHtml(v.paisVotante) + '</td>' +
+          '<td>' + escHtml(v.iniciativa) + '</td>' +
+          '<td>' + escHtml(v.paisIni) + '</td>' +
+          '<td>' + (v.fecha ? new Date(v.fecha).toLocaleString() : '-') + '</td>' +
+        '</tr>';
+    });
+    document.getElementById('tbodyPonderados').innerHTML = tbodyP;
+  }
+
+  // Timestamp
+  document.getElementById('lastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString();
+}
+
+function toggleAutoRefresh() {
+  if (document.getElementById('chkAutoRefresh').checked) {
+    iniciarAutoRefresh();
+  } else {
+    if (estado.refreshInterval) {
+      clearInterval(estado.refreshInterval);
+      estado.refreshInterval = null;
+    }
+  }
+}
+
+function iniciarAutoRefresh() {
+  if (estado.refreshInterval) clearInterval(estado.refreshInterval);
+  estado.refreshInterval = setInterval(function() {
+    if (document.getElementById('vistaAdmin').classList.contains('active')) {
+      cargarDashboard();
+    }
+  }, 15000);
+}
+
+// Admin: Iniciativas
+function cargarIniciativasAdmin() {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res.ok) return;
+      var html = '';
+      res.iniciativas.forEach(function(ini) {
+        html +=
+          '<div class="admin-list-item">' +
+            '<div class="item-info">' +
+              '<div class="item-email">' + escHtml(ini.nombre) + (!ini.activa ? ' <span style="color:var(--bbva-error);font-size:11px;">(Inactiva)</span>' : '') + '</div>' +
+              '<div class="item-meta">' + escHtml(ini.pais) + ' — ' + escHtml(ini.descripcion) + '</div>' +
+              (ini.imagenUrl ? '<div class="item-meta" style="margin-top:4px;"><img src="' + escHtml(ini.imagenUrl) + '" style="height:40px;border-radius:4px;" onerror="this.style.display=\'none\'"></div>' : '') +
+            '</div>' +
+            '<div>' +
+              '<button class="btn btn-sm ' + (ini.activa ? 'btn-secondary' : 'btn-primary') + '" onclick="toggleIniciativa(' + ini.id + ',' + !ini.activa + ')">' + (ini.activa ? 'Desactivar' : 'Activar') + '</button>' +
+            '</div>' +
+          '</div>';
+      });
+      document.getElementById('listaIniciativasAdmin').innerHTML = html || '<p style="color:var(--bbva-gray);text-align:center;">No hay iniciativas.</p>';
+    })
+    .obtenerTodasIniciativas(estado.adminPassword);
+}
+
+function adminAgregarIniciativa() {
+  var pais = document.getElementById('iniPais').value.trim();
+  var nombre = document.getElementById('iniNombre').value.trim();
+  var desc = document.getElementById('iniDesc').value.trim();
+  var imgUrl = document.getElementById('iniImgUrl').value.trim();
+
+  if (!pais || !nombre) { alert('Completa pais y nombre.'); return; }
+
+  var fileInput = document.getElementById('iniFileInput');
+  if (fileInput.files.length > 0 && !imgUrl) {
+    mostrarLoading(true);
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var base64 = e.target.result.split(',')[1];
+      var file = fileInput.files[0];
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.ok) {
+            guardarIniciativa(pais, nombre, desc, res.url);
+          } else {
+            mostrarLoading(false);
+            alert('Error al subir imagen: ' + res.msg);
+          }
+        })
+        .withFailureHandler(function() {
+          mostrarLoading(false);
+          alert('Error al subir imagen.');
+        })
+        .subirImagenDrive(base64, file.name, file.type);
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    guardarIniciativa(pais, nombre, desc, imgUrl);
+  }
+}
+
+function guardarIniciativa(pais, nombre, desc, imgUrl) {
+  mostrarLoading(true);
+  google.script.run
+    .withSuccessHandler(function(res) {
+      mostrarLoading(false);
+      if (res.ok) {
+        document.getElementById('iniPais').value = '';
+        document.getElementById('iniNombre').value = '';
+        document.getElementById('iniDesc').value = '';
+        document.getElementById('iniImgUrl').value = '';
+        document.getElementById('iniImgPreview').style.display = 'none';
+        document.getElementById('iniFileInput').value = '';
+        cargarIniciativasAdmin();
+      }
+    })
+    .withFailureHandler(function() { mostrarLoading(false); alert('Error.'); })
+    .agregarIniciativa(estado.adminPassword, { pais: pais, nombre: nombre, descripcion: desc, imagenUrl: imgUrl });
+}
+
+function toggleIniciativa(id, activa) {
+  mostrarLoading(true);
+  google.script.run
+    .withSuccessHandler(function() {
+      mostrarLoading(false);
+      cargarIniciativasAdmin();
+    })
+    .withFailureHandler(function() { mostrarLoading(false); })
+    .actualizarIniciativa(estado.adminPassword, { id: id, activa: activa });
+}
+
+function previsualizarImagen(input) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = document.getElementById('iniImgPreview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// Admin: Lista ponderada
+function cargarListaPonderadaAdmin() {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res.ok) return;
+      var html = '';
+      res.lista.forEach(function(u) {
+        html +=
+          '<div class="admin-list-item">' +
+            '<div class="item-info">' +
+              '<div class="item-email">' + escHtml(u.Email) + '</div>' +
+              '<div class="item-meta">' + escHtml(u.Nombre || '') + (u.Pais ? ' — ' + escHtml(u.Pais) : '') + (u.Cargo ? ' — ' + escHtml(u.Cargo) : '') + '</div>' +
+            '</div>' +
+            '<button class="btn btn-danger btn-sm" onclick="eliminarPonderado(\'' + escHtml(u.Email).replace(/'/g, "\\'") + '\')">Eliminar</button>' +
+          '</div>';
+      });
+      document.getElementById('listaPondAdmin').innerHTML = html || '<p style="color:var(--bbva-gray);text-align:center;">No hay usuarios en la lista.</p>';
+    })
+    .obtenerListaPonderada(estado.adminPassword);
+}
+
+function adminAgregarPonderado() {
+  var email = document.getElementById('pondEmail').value.trim();
+  var nombre = document.getElementById('pondNombre').value.trim();
+  var pais = document.getElementById('pondPais').value.trim();
+  var cargo = document.getElementById('pondCargo').value.trim();
+
+  if (!email) { alert('Ingresa el email.'); return; }
+
+  mostrarLoading(true);
+  google.script.run
+    .withSuccessHandler(function(res) {
+      mostrarLoading(false);
+      if (res.ok) {
+        document.getElementById('pondEmail').value = '';
+        document.getElementById('pondNombre').value = '';
+        document.getElementById('pondPais').value = '';
+        document.getElementById('pondCargo').value = '';
+        cargarListaPonderadaAdmin();
+      } else {
+        alert(res.msg || 'Error.');
+      }
+    })
+    .withFailureHandler(function() { mostrarLoading(false); alert('Error.'); })
+    .agregarUsuarioPonderado(estado.adminPassword, { email: email, nombre: nombre, pais: pais, cargo: cargo });
+}
+
+function eliminarPonderado(email) {
+  if (!confirm('Eliminar a ' + email + ' de la lista ponderada?')) return;
+  mostrarLoading(true);
+  google.script.run
+    .withSuccessHandler(function() { mostrarLoading(false); cargarListaPonderadaAdmin(); })
+    .withFailureHandler(function() { mostrarLoading(false); })
+    .eliminarUsuarioPonderado(estado.adminPassword, email);
+}
+
+function confirmarReset() {
+  if (!confirm('ATENCION: Esto eliminara TODOS los votos registrados. Esta accion no se puede deshacer. Continuar?')) return;
+  if (!confirm('Confirma por segunda vez: eliminar todos los votos?')) return;
+
+  mostrarLoading(true);
+  google.script.run
+    .withSuccessHandler(function(res) {
+      mostrarLoading(false);
+      if (res.ok) {
+        alert('Todos los votos han sido eliminados.');
+        cargarDashboard();
+      }
+    })
+    .withFailureHandler(function() { mostrarLoading(false); alert('Error.'); })
+    .resetearVotos(estado.adminPassword);
+}
+</script>
+
+</body>
+</html>
