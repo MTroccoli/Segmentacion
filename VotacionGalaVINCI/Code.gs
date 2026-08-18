@@ -33,6 +33,7 @@ const CONFIG = {
   CACHE_EMAILS_VOTARON: 300,
   CACHE_RESULTADOS: 15,
   SLIDES_ID: '1Mkj7SD3SOSkDjyAjGjIIJob-TqvHu9rrrAAjsBvGNXI',
+  CARPETA_IMAGENES: 'Gala VINCI - Imagenes',
 
   // Paises que NO se ponen a votacion. Siguen pudiendo votar y siguen
   // ocupando su lugar en PAISES: el orden de PAISES mapea los slides.
@@ -412,6 +413,41 @@ function resetearVotos(password) {
 // IMAGENES DESDE GOOGLE SLIDES
 // =============================================
 
+function obtenerCarpetaImagenes_(crear) {
+  var folders = DriveApp.getFoldersByName(CONFIG.CARPETA_IMAGENES);
+  if (folders.hasNext()) return folders.next();
+  return crear ? DriveApp.createFolder(CONFIG.CARPETA_IMAGENES) : null;
+}
+
+/**
+ * Borra todo lo exportado: manda a papelera los PNG de la carpeta
+ * y vacia la hoja "Imagenes". Correr antes de reexportar cuando
+ * cambio el orden o la cantidad de slides.
+ */
+function limpiarImagenes() {
+  var borrados = 0;
+  var folder = obtenerCarpetaImagenes_(false);
+  if (folder) {
+    var files = folder.getFiles();
+    while (files.hasNext()) {
+      files.next().setTrashed(true);
+      borrados++;
+    }
+  }
+
+  var sheet = obtenerHoja_().getSheetByName(HOJAS.IMAGENES);
+  if (sheet) {
+    sheet.clear();
+    sheet.appendRow(['Pais', 'ImagenURL']);
+    sheet.getRange('A1:B1').setFontWeight('bold');
+  }
+
+  var msg = 'Limpieza lista: ' + borrados + ' archivos a papelera y hoja "' +
+            HOJAS.IMAGENES + '" vaciada.';
+  Logger.log(msg);
+  return { ok: true, borrados: borrados, msg: msg };
+}
+
 /**
  * Ejecutar UNA VEZ (o cuando cambien las slides).
  * Exporta cada slide como PNG a una carpeta de Drive
@@ -453,8 +489,7 @@ function exportarImagenesSlides() {
     return { ok: false, msg: 'La presentacion no tiene slides.' };
   }
 
-  var folders = DriveApp.getFoldersByName('Gala VINCI - Imagenes');
-  var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('Gala VINCI - Imagenes');
+  var folder = obtenerCarpetaImagenes_(true);
 
   try {
     folder.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
@@ -475,8 +510,19 @@ function exportarImagenesSlides() {
   var total = 0;
   var errores = [];
 
+  var omitidos = 0;
+
   for (var i = 0; i < slides.length; i++) {
     var pageId = slides[i].objectId;
+    var pais = i < PAISES.length ? PAISES[i] : 'Slide ' + (i + 1);
+
+    // El mapeo es posicional: el slide i corresponde a PAISES[i]. Los paises
+    // fuera de votacion se saltean pero siguen ocupando su indice, asi que el
+    // orden de la presentacion tiene que seguir siendo el de PAISES.
+    if (paisSinVotacion_(pais)) {
+      omitidos++;
+      continue;
+    }
 
     try {
       var thumbUrl = 'https://slides.googleapis.com/v1/presentations/' + presId +
@@ -511,7 +557,6 @@ function exportarImagenesSlides() {
         file.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, DriveApp.Permission.VIEW);
       } catch(e) {}
 
-      var pais = i < PAISES.length ? PAISES[i] : 'Slide ' + (i + 1);
       sheet.appendRow([pais, 'https://drive.google.com/uc?export=view&id=' + file.getId()]);
       total++;
 
@@ -521,6 +566,9 @@ function exportarImagenesSlides() {
   }
 
   var msg = 'Exportadas ' + total + ' de ' + slides.length + ' imagenes.';
+  if (omitidos > 0) {
+    msg += ' Omitidas ' + omitidos + ' (paises fuera de votacion).';
+  }
   if (errores.length > 0) {
     msg += ' Errores: ' + errores.join('; ');
     Logger.log('Errores: ' + errores.join('; '));
