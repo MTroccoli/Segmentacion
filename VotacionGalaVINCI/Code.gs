@@ -294,6 +294,23 @@ function obtenerPaisesParaVotar(paisUsuario) {
   });
 }
 
+/**
+ * Devuelve el pais que voto un email, o '' si no aparece. Solo se llama en el
+ * camino del duplicado, que es raro, asi que la lectura de hoja no pesa.
+ */
+function buscarPaisVotado_(email) {
+  var sheet = obtenerHoja_().getSheetByName(HOJAS.VOTOS);
+  if (!sheet || sheet.getLastRow() <= 1) return '';
+
+  var filas = sheet.getRange(2, 2, sheet.getLastRow() - 1, 3).getValues();
+  for (var i = 0; i < filas.length; i++) {
+    if (filas[i][0] && filas[i][0].toString().toLowerCase().trim() === email) {
+      return filas[i][2];
+    }
+  }
+  return '';
+}
+
 function registrarVoto(email, paisVotado, paisVotante) {
   email = email.toLowerCase().trim();
 
@@ -312,7 +329,12 @@ function registrarVoto(email, paisVotado, paisVotante) {
   // filas. El conteo se queda con el primer voto de cada email, asi que un
   // duplicado no altera el resultado.
   if (obtenerEmailsVotaron_().indexOf(email) !== -1) {
-    return { ok: false, msg: 'Ya registraste tu voto anteriormente.' };
+    return {
+      ok: false,
+      yaVoto: true,
+      paisVotado: buscarPaisVotado_(email),
+      msg: 'Ya registraste tu voto anteriormente.'
+    };
   }
 
   var sheet = obtenerHoja_().getSheetByName(HOJAS.VOTOS);

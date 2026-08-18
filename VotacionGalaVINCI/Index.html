@@ -1103,18 +1103,46 @@ function confirmarVoto() {
   cerrarModal();
   mostrarLoading(true);
 
+  // Sin este vencimiento, una request colgada deja el overlay "Procesando..."
+  // puesto para siempre y la persona tiene que recargar la pagina. Si el voto
+  // igual entro despues del corte, al reintentar cae en la rama yaVoto y
+  // termina viendo su confirmacion, no un error.
+  var respondido = false;
+  var vencimiento = setTimeout(function() {
+    if (respondido) return;
+    respondido = true;
+    mostrarLoading(false);
+    alert('Hay mucha demanda y no pudimos confirmar tu voto. Volve a intentar en unos segundos.');
+  }, 45000);
+
+  function terminar() {
+    if (respondido) return false;
+    respondido = true;
+    clearTimeout(vencimiento);
+    mostrarLoading(false);
+    return true;
+  }
+
+  function mostrarConfirmacion(pais) {
+    document.getElementById('confirmPais').textContent = pais || '';
+    mostrarVista('vistaConfirmacion');
+  }
+
   google.script.run
     .withSuccessHandler(function(res) {
-      mostrarLoading(false);
+      if (!terminar()) return;
       if (!res.ok) {
+        if (res.yaVoto) {
+          mostrarConfirmacion(res.paisVotado);
+          return;
+        }
         alert(res.msg);
         return;
       }
-      document.getElementById('confirmPais').textContent = res.paisVotado;
-      mostrarVista('vistaConfirmacion');
+      mostrarConfirmacion(res.paisVotado);
     })
     .withFailureHandler(function() {
-      mostrarLoading(false);
+      if (!terminar()) return;
       alert('Error al registrar el voto. Por favor reintenta.');
     })
     .registrarVoto(estado.email, estado.paisSeleccionado, estado.pais);
