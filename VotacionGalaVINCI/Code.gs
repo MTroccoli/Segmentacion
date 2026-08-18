@@ -32,6 +32,8 @@ const CONFIG = {
   PESO_REGULAR: 0.20,
   CACHE_EMAILS_VOTARON: 300,
   CACHE_RESULTADOS: 15,
+  CACHE_PONDERADOS: 1500,
+  CACHE_IMAGENES: 1500,
   SLIDES_ID: '1Mkj7SD3SOSkDjyAjGjIIJob-TqvHu9rrrAAjsBvGNXI',
   CARPETA_IMAGENES: 'Gala VINCI - Imagenes',
 
@@ -156,17 +158,79 @@ function obtenerEmailsVotaron_() {
     .map(function(r) { return r[0] ? r[0].toString().toLowerCase().trim() : ''; })
     .filter(function(e) { return e; });
 
-  cache.put('emails_votaron', JSON.stringify(emails), CONFIG.CACHE_EMAILS_VOTARON);
+  guardarEnCache_('emails_votaron', emails, CONFIG.CACHE_EMAILS_VOTARON);
   return emails;
 }
 
-function obtenerSetPonderados_() {
-  var sheet = obtenerHoja_().getSheetByName(HOJAS.LISTA_PONDERADA);
-  if (!sheet || sheet.getLastRow() <= 1) return [];
+/**
+ * CacheService rechaza valores de mas de 100KB. Con ~1000 votantes la lista
+ * de emails ronda los 30KB, pero si se pasa preferimos no cachear a romper.
+ */
+function guardarEnCache_(clave, valor, ttl) {
+  var json = JSON.stringify(valor);
+  if (json.length > 90000) return false;
+  try {
+    CacheService.getScriptCache().put(clave, json, ttl);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
 
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues()
+/**
+ * Suma un email a la lista cacheada en vez de invalidarla. Invalidar obligaria
+ * al proximo votante a releer toda la hoja, que es justo lo que no queremos
+ * cuando entran todos juntos.
+ */
+function registrarEmailEnCache_(email) {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('emails_votaron');
+  if (!cached) return;
+  try {
+    var emails = JSON.parse(cached);
+    if (emails.indexOf(email) === -1) {
+      emails.push(email);
+      guardarEnCache_('emails_votaron', emails, CONFIG.CACHE_EMAILS_VOTARON);
+    }
+  } catch(e) {}
+}
+
+function obtenerSetPonderados_() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('ponderados');
+  if (cached) {
+    try { return JSON.parse(cached); } catch(e) {}
+  }
+
+  var sheet = obtenerHoja_().getSheetByName(HOJAS.LISTA_PONDERADA);
+  if (!sheet || sheet.getLastRow() <= 1) {
+    guardarEnCache_('ponderados', [], CONFIG.CACHE_PONDERADOS);
+    return [];
+  }
+
+  var lista = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues()
     .map(function(r) { return r[0] ? r[0].toString().toLowerCase().trim() : ''; })
     .filter(function(e) { return e; });
+
+  guardarEnCache_('ponderados', lista, CONFIG.CACHE_PONDERADOS);
+  return lista;
+}
+
+function invalidarCachePonderados_() {
+  CacheService.getScriptCache().removeAll(['ponderados', 'resultados']);
+}
+
+/**
+ * Vacia todos los caches. Correr desde el editor despues de editar a mano la
+ * hoja "Lista Ponderada" o "Imagenes": si no, los cambios pueden tardar hasta
+ * CACHE_PONDERADOS / CACHE_IMAGENES segundos en verse.
+ */
+function refrescarCaches() {
+  CacheService.getScriptCache().removeAll([
+    'emails_votaron', 'ponderados', 'imagenes', 'resultados'
+  ]);
+  Logger.log('Caches vaciados.');
+  return { ok: true, msg: 'Caches vaciados.' };
 }
 
 function invalidarCacheVotos_() {
@@ -243,43 +307,43 @@ function registrarVoto(email, paisVotado, paisVotante) {
     return { ok: false, msg: 'Ese pais no esta en votacion.' };
   }
 
+  // Chequeo de duplicado contra la lista cacheada, fuera del lock. No es
+  // autoritativo: dos pestanas simultaneas del mismo email podrian colar dos
+  // filas. El conteo se queda con el primer voto de cada email, asi que un
+  // duplicado no altera el resultado.
+  if (obtenerEmailsVotaron_().indexOf(email) !== -1) {
+    return { ok: false, msg: 'Ya registraste tu voto anteriormente.' };
+  }
+
+  var sheet = obtenerHoja_().getSheetByName(HOJAS.VOTOS);
+  if (!sheet) {
+    return { ok: false, msg: 'Error de configuracion: no se encontro la hoja de votos. Ejecuta inicializarSistema().' };
+  }
+
+  // La lista de ponderados esta cacheada, asi que esto no toca la hoja.
+  var esPond = obtenerSetPonderados_().indexOf(email) !== -1;
+  var fila = [new Date(), email, paisVotante, paisVotado, esPond ? 'SI' : 'NO'];
+
+  // Unico tramo serializado: el append. Todo lo caro quedo afuera, asi que la
+  // seccion critica es un solo viaje a Sheets y la cola avanza rapido.
   var lock = LockService.getScriptLock();
   try {
-    lock.waitLock(30000);
-
-    var sheet = obtenerHoja_().getSheetByName(HOJAS.VOTOS);
-    if (!sheet) {
-      return { ok: false, msg: 'Error de configuracion: no se encontro la hoja de votos. Ejecuta inicializarSistema().' };
-    }
-
-    if (sheet.getLastRow() > 1) {
-      var emails = sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).getValues();
-      for (var i = 0; i < emails.length; i++) {
-        if (emails[i][0] && emails[i][0].toString().toLowerCase() === email) {
-          return { ok: false, msg: 'Ya registraste tu voto anteriormente.' };
-        }
-      }
-    }
-
-    var ponderados = obtenerSetPonderados_();
-    var esPond = ponderados.indexOf(email) !== -1;
-
-    sheet.appendRow([
-      new Date(), email, paisVotante, paisVotado, esPond ? 'SI' : 'NO'
-    ]);
-
-    invalidarCacheVotos_();
-
-    return {
-      ok: true,
-      msg: 'Voto registrado exitosamente!',
-      paisVotado: paisVotado
-    };
+    lock.waitLock(20000);
+    sheet.appendRow(fila);
   } catch(e) {
-    return { ok: false, msg: 'Error: ' + (e.message || 'Hubo un error, por favor reintenta en unos segundos.') };
+    return { ok: false, msg: 'Hubo mucha demanda y no se pudo registrar. Reintenta en unos segundos.' };
   } finally {
     try { lock.releaseLock(); } catch(e) {}
   }
+
+  registrarEmailEnCache_(email);
+  invalidarCacheResultados_();
+
+  return {
+    ok: true,
+    msg: 'Voto registrado exitosamente!',
+    paisVotado: paisVotado
+  };
 }
 
 // =============================================
@@ -299,7 +363,15 @@ function obtenerResultadosAdmin(password) {
     try { return JSON.parse(cached); } catch(e) {}
   }
 
-  var votos = leerHoja_(HOJAS.VOTOS);
+  // Sin lock en la escritura pueden colarse filas duplicadas del mismo email:
+  // vale el primer voto, el resto se descarta al contar.
+  var vistos = {};
+  var votos = leerHoja_(HOJAS.VOTOS).filter(function(v) {
+    var e = v.Email ? v.Email.toString().toLowerCase().trim() : '';
+    if (!e || vistos[e]) return false;
+    vistos[e] = true;
+    return true;
+  });
 
   var totalPond = 0;
   var totalReg = 0;
@@ -381,7 +453,7 @@ function agregarUsuarioPonderado(password, datos) {
   obtenerHoja_().getSheetByName(HOJAS.LISTA_PONDERADA).appendRow([
     datos.email, datos.nombre || '', datos.pais || '', datos.cargo || ''
   ]);
-  invalidarCacheResultados_();
+  invalidarCachePonderados_();
   return { ok: true };
 }
 
@@ -392,7 +464,7 @@ function eliminarUsuarioPonderado(password, email) {
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] && data[i][0].toString().toLowerCase() === email.toLowerCase()) {
       sheet.deleteRow(i + 1);
-      invalidarCacheResultados_();
+      invalidarCachePonderados_();
       return { ok: true };
     }
   }
@@ -441,6 +513,8 @@ function limpiarImagenes() {
     sheet.appendRow(['Pais', 'ImagenURL']);
     sheet.getRange('A1:B1').setFontWeight('bold');
   }
+
+  invalidarCacheImagenes_();
 
   var msg = 'Limpieza lista: ' + borrados + ' archivos a papelera y hoja "' +
             HOJAS.IMAGENES + '" vaciada.';
@@ -565,6 +639,8 @@ function exportarImagenesSlides() {
     }
   }
 
+  invalidarCacheImagenes_();
+
   var msg = 'Exportadas ' + total + ' de ' + slides.length + ' imagenes.';
   if (omitidos > 0) {
     msg += ' Omitidas ' + omitidos + ' (paises fuera de votacion).';
@@ -579,14 +655,27 @@ function exportarImagenesSlides() {
   return { ok: total > 0, total: total, msg: msg };
 }
 
+// La llama cada visita al abrir la pagina, asi que va cacheada: si no, son
+// mil lecturas de la hoja para devolver siempre lo mismo.
 function obtenerImagenesPaises() {
-  var sheet = obtenerHoja_().getSheetByName(HOJAS.IMAGENES);
-  if (!sheet || sheet.getLastRow() <= 1) return {};
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('imagenes');
+  if (cached) {
+    try { return JSON.parse(cached); } catch(e) {}
+  }
 
-  var data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
   var mapping = {};
-  data.forEach(function(row) {
-    if (row[0] && row[1]) mapping[row[0]] = row[1];
-  });
+  var sheet = obtenerHoja_().getSheetByName(HOJAS.IMAGENES);
+  if (sheet && sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues().forEach(function(row) {
+      if (row[0] && row[1]) mapping[row[0]] = row[1];
+    });
+  }
+
+  guardarEnCache_('imagenes', mapping, CONFIG.CACHE_IMAGENES);
   return mapping;
+}
+
+function invalidarCacheImagenes_() {
+  CacheService.getScriptCache().remove('imagenes');
 }
