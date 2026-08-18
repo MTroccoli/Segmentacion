@@ -275,14 +275,36 @@
       z-index: 1;
     }
 
+    .card-pais-imagen .bandera-grande {
+      position: relative;
+      z-index: 1;
+      width: 108px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
     .card-pais-body {
       padding: 20px;
       text-align: center;
     }
     .card-pais-nombre {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
       font-size: 20px;
       font-weight: 700;
       color: var(--bbva-dark);
+    }
+    .bandera {
+      flex: none;
+      width: 26px;
+      height: 19px;
+      object-fit: cover;
+      border-radius: 3px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
     }
 
     .votacion-footer {
@@ -856,19 +878,41 @@
 // =============================================
 // DATOS DE PAISES (banderas y colores)
 // =============================================
+// iso: codigo ISO-3166 alpha-2 para la bandera. Windows/Chrome no dibuja los
+// emoji de bandera (muestra las letras), asi que la bandera va como imagen y
+// el emoji queda solo de respaldo para las unidades sin pais (CIB, Holding).
 var PAISES_INFO = {
-  'Argentina':  { emoji: '🇦🇷', color1: '#75AADB', color2: '#FCBF49' },
-  'Chile':      { emoji: '🇨🇱', color1: '#D52B1E', color2: '#0039A6' },
-  'CIB':        { emoji: '🏦',              color1: '#004481', color2: '#1973B8' },
-  'Colombia':   { emoji: '🇨🇴', color1: '#FCD116', color2: '#003893' },
-  'Espana':     { emoji: '🇪🇸', color1: '#AA151B', color2: '#F1BF00' },
-  'Holding':    { emoji: '🏢',              color1: '#072146', color2: '#2DCCCD' },
-  'Mexico':     { emoji: '🇲🇽', color1: '#006847', color2: '#CE1126' },
-  'Peru':       { emoji: '🇵🇪', color1: '#D91023', color2: '#FFFFFF' },
-  'Turquia':    { emoji: '🇹🇷', color1: '#E30A17', color2: '#FFFFFF' },
-  'Uruguay':    { emoji: '🇺🇾', color1: '#001489', color2: '#FCD116' },
-  'Venezuela':  { emoji: '🇻🇪', color1: '#CF142B', color2: '#00247D' }
+  'Argentina':  { iso: 'ar',  emoji: '🇦🇷', color1: '#75AADB', color2: '#FCBF49' },
+  'Chile':      { iso: 'cl',  emoji: '🇨🇱', color1: '#D52B1E', color2: '#0039A6' },
+  'CIB':        { iso: null,  emoji: '🏦',              color1: '#004481', color2: '#1973B8' },
+  'Colombia':   { iso: 'co',  emoji: '🇨🇴', color1: '#FCD116', color2: '#003893' },
+  'Espana':     { iso: 'es',  emoji: '🇪🇸', color1: '#AA151B', color2: '#F1BF00' },
+  'Holding':    { iso: null,  emoji: '🏢',              color1: '#072146', color2: '#2DCCCD' },
+  'Mexico':     { iso: 'mx',  emoji: '🇲🇽', color1: '#006847', color2: '#CE1126' },
+  'Peru':       { iso: 'pe',  emoji: '🇵🇪', color1: '#D91023', color2: '#FFFFFF' },
+  'Turquia':    { iso: 'tr',  emoji: '🇹🇷', color1: '#E30A17', color2: '#FFFFFF' },
+  'Uruguay':    { iso: 'uy',  emoji: '🇺🇾', color1: '#001489', color2: '#FCD116' },
+  'Venezuela':  { iso: 've',  emoji: '🇻🇪', color1: '#CF142B', color2: '#00247D' }
 };
+
+// Paises que no se ponen a votacion. Debe coincidir con
+// CONFIG.PAISES_SIN_VOTACION en Code.gs (el backend igual los rechaza).
+var PAISES_SIN_VOTACION = ['Chile'];
+
+function enVotacion(pais) {
+  return PAISES_SIN_VOTACION.indexOf(pais) === -1;
+}
+
+// Bandera como imagen. Si el pais no tiene ISO o la imagen no carga,
+// se cae al emoji de la unidad.
+function banderaHtml(pais, clase) {
+  var info = PAISES_INFO[pais];
+  if (!info) return '';
+  if (!info.iso) return '<span class="flag-emoji">' + info.emoji + '</span>';
+  return '<img class="' + clase + '" src="https://flagcdn.com/w160/' + info.iso + '.png" ' +
+         'srcset="https://flagcdn.com/w320/' + info.iso + '.png 2x" ' +
+         'alt="' + escHtml(pais) + '" loading="lazy" onerror="this.remove()">';
+}
 
 // =============================================
 // ESTADO GLOBAL
@@ -1005,7 +1049,7 @@ function cargarPaisesVotacion() {
   grid.innerHTML = '';
 
   var paisesVotables = Object.keys(PAISES_INFO).filter(function(p) {
-    return p !== estado.pais;
+    return p !== estado.pais && enVotacion(p);
   });
 
   paisesVotables.forEach(function(pais) {
@@ -1018,14 +1062,14 @@ function cargarPaisesVotacion() {
     var imgUrl = estado.imagenes[pais];
     var imagenHtml = imgUrl
       ? '<img class="card-img" src="' + escHtml(imgUrl) + '" alt="' + escHtml(pais) + '" loading="lazy">'
-      : '<span class="flag-emoji">' + info.emoji + '</span>';
+      : banderaHtml(pais, 'bandera-grande');
 
     card.innerHTML =
       '<div class="card-pais-imagen" style="background: linear-gradient(135deg, ' + info.color1 + ', ' + info.color2 + ');">' +
         imagenHtml +
       '</div>' +
       '<div class="card-pais-body">' +
-        '<div class="card-pais-nombre">' + escHtml(pais) + '</div>' +
+        '<div class="card-pais-nombre">' + banderaHtml(pais, 'bandera') + escHtml(pais) + '</div>' +
       '</div>';
 
     grid.appendChild(card);

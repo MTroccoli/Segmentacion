@@ -32,7 +32,11 @@ const CONFIG = {
   PESO_REGULAR: 0.20,
   CACHE_EMAILS_VOTARON: 300,
   CACHE_RESULTADOS: 15,
-  SLIDES_ID: '1Mkj7SD3SOSkDjyAjGjIIJob-TqvHu9rrrAAjsBvGNXI'
+  SLIDES_ID: '1Mkj7SD3SOSkDjyAjGjIIJob-TqvHu9rrrAAjsBvGNXI',
+
+  // Paises que NO se ponen a votacion. Siguen pudiendo votar y siguen
+  // ocupando su lugar en PAISES: el orden de PAISES mapea los slides.
+  PAISES_SIN_VOTACION: ['Chile']
 };
 
 const PAISES = [
@@ -48,6 +52,12 @@ const PAISES = [
   'Uruguay',
   'Venezuela'
 ];
+
+function paisSinVotacion_(pais) {
+  if (!pais) return false;
+  var p = pais.toString().trim().toLowerCase();
+  return CONFIG.PAISES_SIN_VOTACION.some(function(x) { return x.toLowerCase() === p; });
+}
 
 const HOJAS = {
   VOTOS: 'Votos',
@@ -214,7 +224,9 @@ function validarUsuario(email, pais) {
 // =============================================
 
 function obtenerPaisesParaVotar(paisUsuario) {
-  return PAISES.filter(function(p) { return p !== paisUsuario; });
+  return PAISES.filter(function(p) {
+    return p !== paisUsuario && !paisSinVotacion_(p);
+  });
 }
 
 function registrarVoto(email, paisVotado, paisVotante) {
@@ -225,6 +237,9 @@ function registrarVoto(email, paisVotado, paisVotante) {
   }
   if (paisVotado === paisVotante) {
     return { ok: false, msg: 'No puedes votar por tu propio pais.' };
+  }
+  if (paisSinVotacion_(paisVotado)) {
+    return { ok: false, msg: 'Ese pais no esta en votacion.' };
   }
 
   var lock = LockService.getScriptLock();
@@ -302,7 +317,9 @@ function obtenerResultadosAdmin(password) {
     }
   });
 
-  var ranking = PAISES.map(function(pais) {
+  var paisesEnVotacion = PAISES.filter(function(p) { return !paisSinVotacion_(p); });
+
+  var ranking = paisesEnVotacion.map(function(pais) {
     var vp = conteosPond[pais];
     var vr = conteosReg[pais];
     var sp = totalPond > 0 ? (vp / totalPond) * CONFIG.PESO_PONDERADO * 100 : 0;
@@ -337,7 +354,7 @@ function obtenerResultadosAdmin(password) {
       total: votos.length,
       ponderados: totalPond,
       regulares: totalReg,
-      paises: PAISES.length
+      paises: paisesEnVotacion.length
     },
     detallePond: detallePond,
     actualizado: new Date().toISOString()
