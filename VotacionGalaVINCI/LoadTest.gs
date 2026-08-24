@@ -24,10 +24,10 @@ var LOADTEST = {
   PREFIJO: 'loadtest-',
   DOMINIO: 'loadtest.invalid',
 
-  // Ningun votante real puede estar en estos paises a la vez, y ninguno de los
-  // dos puede estar en PAISES_SIN_VOTACION.
-  PAIS_VOTANTE: 'Holding',
-  PAIS_VOTADO: 'Argentina',
+  // Pais desde el que "vota" el test. Conviene uno sin categoria (Chile,
+  // Mexico o Turquia): asi no se le descuenta ninguna opcion y el test elige
+  // en las tres categorias, como la mayoria de la gente.
+  PAIS_VOTANTE: 'Chile',
 
   // Corta la corrida antes del limite de 6 minutos de Apps Script.
   MAX_MS: 4 * 60 * 1000,
@@ -55,6 +55,7 @@ var LOADTEST = {
 function simularVotos(n) {
   n = n || 100;
 
+  var votos = votosDePrueba_();
   var tiempos = [];
   var ok = 0;
   var fallos = {};
@@ -69,7 +70,7 @@ function simularVotos(n) {
     }
 
     var t0 = Date.now();
-    var res = registrarVoto(emailDePrueba_(i), LOADTEST.PAIS_VOTADO, LOADTEST.PAIS_VOTANTE);
+    var res = registrarVoto(emailDePrueba_(i), votos, LOADTEST.PAIS_VOTANTE);
     tiempos.push(Date.now() - t0);
 
     if (res && res.ok) {
@@ -107,6 +108,7 @@ function simularVotosConcurrentes(n) {
   }
 
   var token = ScriptApp.getOAuthToken();
+  var votosJson = JSON.stringify(votosDePrueba_());
   var tiempos = [];
   var ok = 0;
   var fallos = {};
@@ -131,7 +133,7 @@ function simularVotosConcurrentes(n) {
         payload: {
           token: LOADTEST.TOKEN,
           email: emailDePrueba_(i),
-          paisVotado: LOADTEST.PAIS_VOTADO,
+          votos: votosJson,
           paisVotante: LOADTEST.PAIS_VOTANTE
         },
         muteHttpExceptions: true,
@@ -211,7 +213,14 @@ function doPost(e) {
     return responder({ ok: false, msg: 'Token invalido.' });
   }
 
-  return responder(registrarVoto(p.email, p.paisVotado, p.paisVotante));
+  var votos;
+  try {
+    votos = JSON.parse(p.votos || '{}');
+  } catch(err) {
+    return responder({ ok: false, msg: 'votos no es JSON valido.' });
+  }
+
+  return responder(registrarVoto(p.email, votos, p.paisVotante));
 }
 
 // =============================================
@@ -253,6 +262,18 @@ function limpiarVotosDePrueba() {
 
 function emailDePrueba_(i) {
   return LOADTEST.PREFIJO + ('0000' + i).slice(-4) + '@' + LOADTEST.DOMINIO;
+}
+
+/**
+ * Arma un voto valido: el primer pais disponible de cada categoria para este
+ * votante. No reparte los votos, no interesa el ranking sino el tiempo.
+ */
+function votosDePrueba_() {
+  var votos = {};
+  obtenerCategoriasParaVotar(LOADTEST.PAIS_VOTANTE).forEach(function(cat) {
+    votos[cat.id] = cat.paises[0];
+  });
+  return votos;
 }
 
 function percentil_(ordenados, p) {

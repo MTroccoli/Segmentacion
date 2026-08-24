@@ -1,5 +1,5 @@
 /**
- * Gala VINCI - Sistema de Votacion
+ * VINCI Expedition - Sistema de Votacion
  * Septiembre 2026
  *
  * INSTRUCCIONES DE CONFIGURACION:
@@ -37,10 +37,36 @@ const CONFIG = {
   SLIDES_ID: '1Mkj7SD3SOSkDjyAjGjIIJob-TqvHu9rrrAAjsBvGNXI',
   CARPETA_IMAGENES: 'Gala VINCI - Imagenes',
 
-  // Paises que NO se ponen a votacion. Siguen pudiendo votar y siguen
-  // ocupando su lugar en PAISES: el orden de PAISES mapea los slides.
-  PAISES_SIN_VOTACION: ['Chile']
 };
+
+/**
+ * Cada votante elige un pais por categoria. Un pais pertenece a una sola
+ * categoria, y los que no figuran en ninguna no se votan: hoy Chile, Mexico
+ * y Turquia. Para sumar un pais, agregalo a la lista de su categoria y volve
+ * a correr limpiarImagenes() + exportarImagenesSlides().
+ *
+ * 'columna' es el encabezado que lleva su voto en la hoja Votos.
+ */
+const CATEGORIAS = [
+  {
+    id: 'mejora_continua',
+    nombre: 'Mejora Continua',
+    columna: 'VotoMejoraContinua',
+    paises: ['Argentina', 'CIB', 'Peru']
+  },
+  {
+    id: 'ia_modelos',
+    nombre: 'IA / Modelos',
+    columna: 'VotoIAModelos',
+    paises: ['Colombia', 'Holding', 'Venezuela']
+  },
+  {
+    id: 'proyecto_sda',
+    nombre: 'Proyecto SDA',
+    columna: 'VotoProyectoSDA',
+    paises: ['Espana', 'Uruguay']
+  }
+];
 
 const PAISES = [
   'Argentina',
@@ -56,10 +82,28 @@ const PAISES = [
   'Venezuela'
 ];
 
-function paisSinVotacion_(pais) {
-  if (!pais) return false;
-  var p = pais.toString().trim().toLowerCase();
-  return CONFIG.PAISES_SIN_VOTACION.some(function(x) { return x.toLowerCase() === p; });
+function categoriaDe_(pais) {
+  for (var i = 0; i < CATEGORIAS.length; i++) {
+    if (CATEGORIAS[i].paises.indexOf(pais) !== -1) return CATEGORIAS[i];
+  }
+  return null;
+}
+
+function categoriaPorId_(id) {
+  for (var i = 0; i < CATEGORIAS.length; i++) {
+    if (CATEGORIAS[i].id === id) return CATEGORIAS[i];
+  }
+  return null;
+}
+
+function paisEnVotacion_(pais) {
+  return categoriaDe_(pais) !== null;
+}
+
+function encabezadosVotos_() {
+  var h = ['Timestamp', 'Email', 'PaisVotante', 'EsPonderado'];
+  CATEGORIAS.forEach(function(c) { h.push(c.columna); });
+  return h;
 }
 
 const HOJAS = {
@@ -74,7 +118,7 @@ const HOJAS = {
 
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('Gala VINCI - Votacion')
+    .setTitle('VINCI Expedition')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
@@ -89,8 +133,9 @@ function inicializarSistema() {
 
   if (nombres.indexOf(HOJAS.VOTOS) === -1) {
     var sv = ss.insertSheet(HOJAS.VOTOS);
-    sv.appendRow(['Timestamp', 'Email', 'PaisVotante', 'PaisVotado', 'EsPonderado']);
-    sv.getRange('A1:E1').setFontWeight('bold');
+    var encabezados = encabezadosVotos_();
+    sv.appendRow(encabezados);
+    sv.getRange(1, 1, 1, encabezados.length).setFontWeight('bold');
   }
 
   if (nombres.indexOf(HOJAS.LISTA_PONDERADA) === -1) {
@@ -123,7 +168,7 @@ function obtenerHoja_() {
   if (id) {
     try { return SpreadsheetApp.openById(id); } catch(e) {}
   }
-  var ss = SpreadsheetApp.create('Gala VINCI - Votacion');
+  var ss = SpreadsheetApp.create('VINCI Expedition - Votacion');
   props.setProperty('SS_ID', ss.getId());
   return ss;
 }
@@ -246,22 +291,25 @@ function invalidarCacheResultados_() {
 // API PUBLICA - DETECCION DE EMAIL
 // =============================================
 
-function obtenerEmailUsuario() {
-  try {
-    var email = Session.getActiveUser().getEmail();
-    if (email && email.indexOf('@') !== -1) {
-      return { ok: true, email: email };
-    }
-  } catch(e) {}
-  return { ok: false, email: '' };
-}
-
 // =============================================
 // API PUBLICA - REGISTRO
 // =============================================
 
 function obtenerPaises() {
   return PAISES;
+}
+
+/**
+ * URL publica del web app, para armar el QR desde el panel admin.
+ * Devuelve la del despliegue activo, asi que hay que llamarla desde el
+ * web app publicado y no desde el editor.
+ */
+function obtenerUrlWebApp() {
+  try {
+    return { ok: true, url: ScriptApp.getService().getUrl() };
+  } catch(e) {
+    return { ok: false, url: '', msg: e.message };
+  }
 }
 
 function validarUsuario(email, pais) {
@@ -288,40 +336,79 @@ function validarUsuario(email, pais) {
 // API PUBLICA - VOTACION
 // =============================================
 
-function obtenerPaisesParaVotar(paisUsuario) {
-  return PAISES.filter(function(p) {
-    return p !== paisUsuario && !paisSinVotacion_(p);
+/**
+ * Devuelve las categorias con los paises que este votante puede elegir.
+ * Se saca su propio pais, y si una categoria queda vacia no se ofrece.
+ */
+function obtenerCategoriasParaVotar(paisUsuario) {
+  return CATEGORIAS.map(function(c) {
+    return {
+      id: c.id,
+      nombre: c.nombre,
+      paises: c.paises.filter(function(p) { return p !== paisUsuario; })
+    };
+  }).filter(function(c) {
+    return c.paises.length > 0;
   });
 }
 
 /**
- * Devuelve el pais que voto un email, o '' si no aparece. Solo se llama en el
- * camino del duplicado, que es raro, asi que la lectura de hoja no pesa.
+ * Devuelve los votos ya registrados de un email como { idCategoria: pais }.
+ * Solo se llama en el camino del duplicado, que es raro, asi que la lectura
+ * de hoja no pesa.
  */
-function buscarPaisVotado_(email) {
+function buscarVotosDe_(email) {
   var sheet = obtenerHoja_().getSheetByName(HOJAS.VOTOS);
-  if (!sheet || sheet.getLastRow() <= 1) return '';
+  if (!sheet || sheet.getLastRow() <= 1) return {};
 
-  var filas = sheet.getRange(2, 2, sheet.getLastRow() - 1, 3).getValues();
+  var ancho = encabezadosVotos_().length;
+  var filas = sheet.getRange(2, 1, sheet.getLastRow() - 1, ancho).getValues();
+
   for (var i = 0; i < filas.length; i++) {
-    if (filas[i][0] && filas[i][0].toString().toLowerCase().trim() === email) {
-      return filas[i][2];
+    if (filas[i][1] && filas[i][1].toString().toLowerCase().trim() === email) {
+      var votos = {};
+      CATEGORIAS.forEach(function(c, j) {
+        // Las columnas de voto arrancan despues de las cuatro fijas.
+        votos[c.id] = filas[i][4 + j] || '';
+      });
+      return votos;
     }
   }
-  return '';
+  return {};
 }
 
-function registrarVoto(email, paisVotado, paisVotante) {
-  email = email.toLowerCase().trim();
+/**
+ * Registra los votos de una persona: uno por categoria, todos en una sola
+ * fila. Una fila por votante mantiene el append en una unica escritura, que
+ * es lo que sostiene el ritmo cuando entran todos juntos.
+ *
+ * votos = { idCategoria: pais, ... }
+ */
+function registrarVoto(email, votos, paisVotante) {
+  email = (email || '').toString().toLowerCase().trim();
+  votos = votos || {};
 
-  if (PAISES.indexOf(paisVotado) === -1) {
+  if (!email || email.indexOf('@') === -1) {
+    return { ok: false, msg: 'Email invalido.' };
+  }
+  if (PAISES.indexOf(paisVotante) === -1) {
     return { ok: false, msg: 'Pais no valido.' };
   }
-  if (paisVotado === paisVotante) {
-    return { ok: false, msg: 'No puedes votar por tu propio pais.' };
-  }
-  if (paisSinVotacion_(paisVotado)) {
-    return { ok: false, msg: 'Ese pais no esta en votacion.' };
+
+  var categorias = obtenerCategoriasParaVotar(paisVotante);
+  var elegidos = {};
+
+  for (var i = 0; i < categorias.length; i++) {
+    var cat = categorias[i];
+    var elegido = votos[cat.id];
+
+    if (!elegido) {
+      return { ok: false, msg: 'Falta elegir un pais en ' + cat.nombre + '.' };
+    }
+    if (cat.paises.indexOf(elegido) === -1) {
+      return { ok: false, msg: 'La opcion elegida en ' + cat.nombre + ' no es valida.' };
+    }
+    elegidos[cat.id] = elegido;
   }
 
   // Chequeo de duplicado contra la lista cacheada, fuera del lock. No es
@@ -332,7 +419,7 @@ function registrarVoto(email, paisVotado, paisVotante) {
     return {
       ok: false,
       yaVoto: true,
-      paisVotado: buscarPaisVotado_(email),
+      votos: buscarVotosDe_(email),
       msg: 'Ya registraste tu voto anteriormente.'
     };
   }
@@ -344,7 +431,8 @@ function registrarVoto(email, paisVotado, paisVotante) {
 
   // La lista de ponderados esta cacheada, asi que esto no toca la hoja.
   var esPond = obtenerSetPonderados_().indexOf(email) !== -1;
-  var fila = [new Date(), email, paisVotante, paisVotado, esPond ? 'SI' : 'NO'];
+  var fila = [new Date(), email, paisVotante, esPond ? 'SI' : 'NO'];
+  CATEGORIAS.forEach(function(c) { fila.push(elegidos[c.id] || ''); });
 
   // Unico tramo serializado: el append. Todo lo caro quedo afuera, asi que la
   // seccion critica es un solo viaje a Sheets y la cola avanza rapido.
@@ -363,8 +451,8 @@ function registrarVoto(email, paisVotado, paisVotante) {
 
   return {
     ok: true,
-    msg: 'Voto registrado exitosamente!',
-    paisVotado: paisVotado
+    msg: 'Votos registrados exitosamente!',
+    votos: elegidos
   };
 }
 
@@ -386,9 +474,9 @@ function obtenerResultadosAdmin(password) {
   }
 
   // Sin lock en la escritura pueden colarse filas duplicadas del mismo email:
-  // vale el primer voto, el resto se descarta al contar.
+  // vale la primera fila, el resto se descarta al contar.
   var vistos = {};
-  var votos = leerHoja_(HOJAS.VOTOS).filter(function(v) {
+  var votantes = leerHoja_(HOJAS.VOTOS).filter(function(v) {
     var e = v.Email ? v.Email.toString().toLowerCase().trim() : '';
     if (!e || vistos[e]) return false;
     vistos[e] = true;
@@ -397,59 +485,81 @@ function obtenerResultadosAdmin(password) {
 
   var totalPond = 0;
   var totalReg = 0;
-  var conteosPond = {};
-  var conteosReg = {};
-  PAISES.forEach(function(p) { conteosPond[p] = 0; conteosReg[p] = 0; });
-
-  votos.forEach(function(v) {
-    var pais = v.PaisVotado;
-    if (v.EsPonderado === 'SI') {
-      totalPond++;
-      if (conteosPond[pais] !== undefined) conteosPond[pais]++;
-    } else {
-      totalReg++;
-      if (conteosReg[pais] !== undefined) conteosReg[pais]++;
-    }
+  votantes.forEach(function(v) {
+    if (v.EsPonderado === 'SI') totalPond++; else totalReg++;
   });
 
-  var paisesEnVotacion = PAISES.filter(function(p) { return !paisSinVotacion_(p); });
+  // El 80/20 se calcula dentro de cada categoria: el denominador es la gente
+  // que efectivamente voto en esa categoria, no el total de votantes.
+  var categorias = CATEGORIAS.map(function(cat) {
+    var conteosPond = {};
+    var conteosReg = {};
+    cat.paises.forEach(function(p) { conteosPond[p] = 0; conteosReg[p] = 0; });
 
-  var ranking = paisesEnVotacion.map(function(pais) {
-    var vp = conteosPond[pais];
-    var vr = conteosReg[pais];
-    var sp = totalPond > 0 ? (vp / totalPond) * CONFIG.PESO_PONDERADO * 100 : 0;
-    var sr = totalReg  > 0 ? (vr / totalReg)  * CONFIG.PESO_REGULAR   * 100 : 0;
+    var catPond = 0;
+    var catReg = 0;
+
+    votantes.forEach(function(v) {
+      var elegido = v[cat.columna];
+      if (!elegido || conteosPond[elegido] === undefined) return;
+
+      if (v.EsPonderado === 'SI') {
+        catPond++;
+        conteosPond[elegido]++;
+      } else {
+        catReg++;
+        conteosReg[elegido]++;
+      }
+    });
+
+    var ranking = cat.paises.map(function(pais) {
+      var vp = conteosPond[pais];
+      var vr = conteosReg[pais];
+      var sp = catPond > 0 ? (vp / catPond) * CONFIG.PESO_PONDERADO * 100 : 0;
+      var sr = catReg > 0 ? (vr / catReg) * CONFIG.PESO_REGULAR * 100 : 0;
+
+      return {
+        pais: pais,
+        votosPond: vp, votosReg: vr, totalVotos: vp + vr,
+        scorePond: Math.round(sp * 100) / 100,
+        scoreReg:  Math.round(sr * 100) / 100,
+        scoreTotal: Math.round((sp + sr) * 100) / 100
+      };
+    });
+
+    ranking.sort(function(a, b) { return b.scoreTotal - a.scoreTotal; });
 
     return {
-      pais: pais,
-      votosPond: vp, votosReg: vr, totalVotos: vp + vr,
-      scorePond: Math.round(sp * 100) / 100,
-      scoreReg:  Math.round(sr * 100) / 100,
-      scoreTotal: Math.round((sp + sr) * 100) / 100
+      id: cat.id,
+      nombre: cat.nombre,
+      ranking: ranking,
+      ponderados: catPond,
+      regulares: catReg
     };
   });
 
-  ranking.sort(function(a, b) { return b.scoreTotal - a.scoreTotal; });
-
-  var detallePond = votos
+  var detallePond = votantes
     .filter(function(v) { return v.EsPonderado === 'SI'; })
     .map(function(v) {
+      var elecciones = CATEGORIAS.map(function(c) {
+        return { categoria: c.nombre, pais: v[c.columna] || '-' };
+      });
       return {
         email: v.Email,
         paisVotante: v.PaisVotante,
-        paisVotado: v.PaisVotado,
+        elecciones: elecciones,
         fecha: v.Timestamp
       };
     });
 
   var resultado = {
     ok: true,
-    ranking: ranking,
+    categorias: categorias,
     stats: {
-      total: votos.length,
+      total: votantes.length,
       ponderados: totalPond,
       regulares: totalReg,
-      paises: paisesEnVotacion.length
+      paises: CATEGORIAS.reduce(function(n, c) { return n + c.paises.length; }, 0)
     },
     detallePond: detallePond,
     actualizado: new Date().toISOString()
@@ -613,9 +723,9 @@ function exportarImagenesSlides() {
     var pais = i < PAISES.length ? PAISES[i] : 'Slide ' + (i + 1);
 
     // El mapeo es posicional: el slide i corresponde a PAISES[i]. Los paises
-    // fuera de votacion se saltean pero siguen ocupando su indice, asi que el
+    // sin categoria se saltean pero siguen ocupando su indice, asi que el
     // orden de la presentacion tiene que seguir siendo el de PAISES.
-    if (paisSinVotacion_(pais)) {
+    if (!paisEnVotacion_(pais)) {
       omitidos++;
       continue;
     }
@@ -665,7 +775,7 @@ function exportarImagenesSlides() {
 
   var msg = 'Exportadas ' + total + ' de ' + slides.length + ' imagenes.';
   if (omitidos > 0) {
-    msg += ' Omitidas ' + omitidos + ' (paises fuera de votacion).';
+    msg += ' Omitidas ' + omitidos + ' (paises sin categoria).';
   }
   if (errores.length > 0) {
     msg += ' Errores: ' + errores.join('; ');
