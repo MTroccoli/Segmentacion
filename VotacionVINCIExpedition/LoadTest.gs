@@ -1,5 +1,5 @@
 /**
- * PRUEBAS DE CARGA - Gala VINCI
+ * PRUEBAS DE CARGA - VINCI Expedition
  *
  * Este archivo NO forma parte del sistema de votacion. Es todo el aparato de
  * testing junto: borra el archivo del proyecto y no queda ningun rastro,

@@ -807,6 +807,14 @@
              autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false">
     </div>
 
+    <div class="form-group" id="grupoEmailAuto" style="display:none;">
+      <label>Email corporativo</label>
+      <div class="email-auto">
+        <span class="icon-check">&#10003;</span>
+        <span id="emailAutoDetectado"></span>
+      </div>
+    </div>
+
     <button class="btn btn-primary btn-block" id="btnIngresar" onclick="ingresar()">Ingresar</button>
 
     <span class="link-admin" onclick="mostrarAdmin()">Panel de administracion</span>
@@ -997,6 +1005,7 @@ var estado = {
   email: '',
   pais: '',
   esPonderado: false,
+  emailAutoDetectado: false,
   adminPassword: '',
   refreshInterval: null,
   imagenes: {},
@@ -1056,6 +1065,19 @@ function escHtml(str) {
   });
 
   google.script.run
+    .withSuccessHandler(function(res) {
+      if (res.ok && res.email) {
+        estado.email = res.email;
+        estado.emailAutoDetectado = true;
+        document.getElementById('grupoEmail').style.display = 'none';
+        document.getElementById('grupoEmailAuto').style.display = 'block';
+        document.getElementById('emailAutoDetectado').textContent = res.email;
+      }
+    })
+    .withFailureHandler(function() {})
+    .obtenerEmailUsuario();
+
+  google.script.run
     .withSuccessHandler(function(mapping) {
       estado.imagenes = mapping || {};
     })
@@ -1068,7 +1090,9 @@ function escHtml(str) {
 // =============================================
 function ingresar() {
   var pais = document.getElementById('selectPais').value;
-  var email = document.getElementById('inputEmail').value.trim();
+  var email = estado.emailAutoDetectado
+    ? estado.email
+    : document.getElementById('inputEmail').value.trim();
   ocultarError('errorRegistro');
 
   if (!pais) { mostrarError('errorRegistro', 'Selecciona tu pais.'); return; }

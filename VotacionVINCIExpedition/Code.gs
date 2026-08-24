@@ -14,7 +14,7 @@
  * OPCION B - Con clasp (recomendada):
  * 1. npm install -g @google/clasp
  * 2. clasp login
- * 3. clasp create --type webapp --title "Gala VINCI"
+ * 3. clasp create --type webapp --title "VINCI Expedition"
  *    (o clasp clone <scriptId> si ya existe el proyecto)
  * 4. clasp push
  * 5. clasp deploy
@@ -35,7 +35,7 @@ const CONFIG = {
   CACHE_PONDERADOS: 1500,
   CACHE_IMAGENES: 1500,
   SLIDES_ID: '1Mkj7SD3SOSkDjyAjGjIIJob-TqvHu9rrrAAjsBvGNXI',
-  CARPETA_IMAGENES: 'Gala VINCI - Imagenes',
+  CARPETA_IMAGENES: 'VINCI Expedition - Imagenes',
 
 };
 
@@ -290,6 +290,21 @@ function invalidarCacheResultados_() {
 // =============================================
 // API PUBLICA - DETECCION DE EMAIL
 // =============================================
+
+/**
+ * Email de quien esta usando el web app. Funciona porque el despliegue es
+ * de dominio: la persona ya viene logueada con su cuenta BBVA. Si por lo que
+ * sea no se puede leer, el front cae al campo de email escrito a mano.
+ */
+function obtenerEmailUsuario() {
+  try {
+    var email = Session.getActiveUser().getEmail();
+    if (email && email.indexOf('@') !== -1) {
+      return { ok: true, email: email };
+    }
+  } catch(e) {}
+  return { ok: false, email: '' };
+}
 
 // =============================================
 // API PUBLICA - REGISTRO
